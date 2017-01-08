@@ -21,10 +21,14 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private Quaternion m_CameraTargetRot;
         private bool m_cursorIsLocked = true;
 
+        private float initZpos;
+        private float initYpos;
+
         public void Init(Transform character, Transform camera)
         {
             m_CharacterTargetRot = character.localRotation;
             m_CameraTargetRot = camera.localRotation;
+            initZpos = camera.position.z;
         }
 
 
@@ -35,6 +39,12 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
             m_CharacterTargetRot *= Quaternion.Euler (0f, yRot, 0f);
             m_CameraTargetRot *= Quaternion.Euler (-xRot, 0f, 0f);
+            // Debug.Log(m_CameraTargetRot);
+
+            float adjustmentFactor = .1f;
+            float zPos = (camera.rotation.eulerAngles.x - 20) * adjustmentFactor + initZpos;
+            camera.position = new Vector3(camera.position.x, camera.position.y, zPos);
+
 
             if(clampVerticalRotation)
                 m_CameraTargetRot = ClampRotationAroundXAxis (m_CameraTargetRot);

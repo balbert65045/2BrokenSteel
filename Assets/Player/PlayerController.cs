@@ -6,6 +6,7 @@ namespace Player
 {
 
     [RequireComponent(typeof(Rigidbody))]
+    [RequireComponent(typeof(Animator))]
     public class PlayerController : MonoBehaviour
     {
 
@@ -24,6 +25,7 @@ namespace Player
         float m_GroundCheckDistance = 0.1f;
 
         Rigidbody m_Rigidbody;
+        Animator m_Animator;
         bool m_IsGrounded;
         float m_OrigGroundCheckDistance;
         float m_TurnAmount;
@@ -34,6 +36,7 @@ namespace Player
         void Start()
         {
             m_Rigidbody = GetComponent<Rigidbody>();
+            m_Animator = GetComponent<Animator>();
             //        m_boxCollide = GetComponent<BoxCollider>();
 
             m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
@@ -64,6 +67,8 @@ namespace Player
             {
                 HandleAirborneMovement();
             }
+
+            UpdateAnimator(move);
 
         }
 
@@ -96,6 +101,27 @@ namespace Player
             // help the character turn faster (this is in addition to root rotation in the animation)
             float turnSpeed = Mathf.Lerp(m_StationaryTurnSpeed, m_MovingTurnSpeed, m_ForwardAmount);
             transform.Rotate(0, m_TurnAmount * turnSpeed * Time.deltaTime, 0);
+        }
+
+        void UpdateAnimator(Vector3 move)
+        {
+            if (move == Vector3.zero)
+            {
+                m_Animator.SetBool("Moving", false);
+            }
+            else
+            {
+                m_Animator.SetBool("Moving", true);
+                float RunSpeed = 1.35f;
+                float SlowDownSpeed = 0.8f;
+                if (move.magnitude == 1)
+                {
+                    m_Animator.speed = RunSpeed;
+                } else
+                {
+                    m_Animator.speed = SlowDownSpeed;
+                }
+            }
         }
 
         void CheckGroundStatus()

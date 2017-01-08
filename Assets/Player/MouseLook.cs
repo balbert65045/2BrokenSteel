@@ -21,10 +21,19 @@ namespace Player
         private Quaternion m_CameraTargetRot;
         private bool m_cursorIsLocked = true;
 
+
+        private float initZpos;
+        private float zPos; 
+        private float initYpos;
+        private float yPos; 
+
         public void Init(Transform character, Transform camera)
         {
             m_CharacterTargetRot = character.localRotation;
             m_CameraTargetRot = camera.localRotation;
+            initZpos = camera.localPosition.z;
+            initYpos = camera.localPosition.y; 
+            Debug.Log(initZpos);
         }
 
 
@@ -36,7 +45,28 @@ namespace Player
             m_CharacterTargetRot *= Quaternion.Euler (0f, yRot, 0f);
             m_CameraTargetRot *= Quaternion.Euler (-xRot, 0f, 0f);
 
-            if(clampVerticalRotation)
+            float adjustmentFactorZ = .1f;
+            float adjustmentFactorY = .17f;
+            if (180 - camera.rotation.eulerAngles.x < 0)
+            {
+                zPos = ((380 - camera.rotation.eulerAngles.x)) * adjustmentFactorZ + initZpos;
+                yPos = ((camera.rotation.eulerAngles.x - 380)) * adjustmentFactorY + initYpos;
+            }
+            else if (camera.rotation.eulerAngles.x <= 20)
+            {
+                zPos = (20 - (camera.rotation.eulerAngles.x)) * adjustmentFactorZ + initZpos;
+                yPos = ((camera.rotation.eulerAngles.x - 20)) * adjustmentFactorY + initYpos; ;
+            }
+            else
+            {
+                zPos = (camera.rotation.eulerAngles.x - 20) * adjustmentFactorZ + initZpos;
+                yPos = initYpos;
+            }
+
+            camera.localPosition = new Vector3(camera.localPosition.x, yPos, zPos);
+
+
+            if (clampVerticalRotation)
                 m_CameraTargetRot = ClampRotationAroundXAxis (m_CameraTargetRot);
 
             if(smooth)
