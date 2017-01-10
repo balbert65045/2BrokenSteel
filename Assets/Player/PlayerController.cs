@@ -23,6 +23,8 @@ namespace Player
         float m_MoveSpeedMultiplier = 1f;
         [SerializeField]
         float m_GroundCheckDistance = 0.1f;
+        [SerializeField]
+        float m_LaunchPower = 24f;
 
         Rigidbody m_Rigidbody;
         Animator m_Animator;
@@ -43,7 +45,7 @@ namespace Player
             m_OrigGroundCheckDistance = m_GroundCheckDistance;
         }
 
-        public void Move(Vector3 move, bool jump)
+        public void Move(Vector3 move, bool jump, bool UpLaunch)
         {
 
             // convert the world relative moveInput vector into a local-relative
@@ -68,7 +70,12 @@ namespace Player
                 HandleAirborneMovement();
             }
 
-            UpdateAnimator(move);
+            //control Launch direction
+
+            //HandleLaunch(move, UpLaunch);
+
+            //Update animator
+            UpdateAnimator(move, UpLaunch);
 
         }
 
@@ -96,6 +103,13 @@ namespace Player
             }
         }
 
+        public void HandleLaunch()
+        {
+                m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, m_LaunchPower, m_Rigidbody.velocity.z);
+                m_IsGrounded = false;
+                m_GroundCheckDistance = 0.1f;
+        }
+
         void ApplyExtraTurnRotation()
         {
             // help the character turn faster (this is in addition to root rotation in the animation)
@@ -103,7 +117,7 @@ namespace Player
             transform.Rotate(0, m_TurnAmount * turnSpeed * Time.deltaTime, 0);
         }
 
-        void UpdateAnimator(Vector3 move)
+        void UpdateAnimator(Vector3 move, bool UpLaunch)
         {
             if (move == Vector3.zero)
             {
@@ -121,6 +135,10 @@ namespace Player
                 {
                     m_Animator.speed = SlowDownSpeed;
                 }
+            }
+            if (UpLaunch)
+            {
+                m_Animator.SetTrigger("UpLaunch");
             }
         }
 

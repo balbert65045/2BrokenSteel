@@ -14,7 +14,7 @@ namespace Player
         public Vector3 m_Move;
 
         private bool m_Jump;                      // the world-relative desired move direction, calculated from the camForward and user input.
-        private bool n_Jump;
+        private bool m_UpLaunch = false;
 
         public Vector3 TestVector; 
 
@@ -46,10 +46,11 @@ namespace Player
             {
                 m_Jump = CrossPlatformInputManager.GetButtonDown("Jump");
             }
-            else
+            if (!m_UpLaunch)
             {
-                Debug.Log("Jumped");
+                m_UpLaunch = CrossPlatformInputManager.GetButtonDown("UpLaunch");
             }
+            Debug.Log(m_UpLaunch);
             RotateView();
         }
 
@@ -64,9 +65,7 @@ namespace Player
                 TestVector = m_Cam.transform.position;
 
                 m_CamForward = Vector3.Scale(transform.position - m_Cam.transform.position, new Vector3(1, 0, 1)).normalized;
-                //m_Move = v * m_CamForward + h * m_Cam.right;
                 m_Move = v * m_CamForward + h * m_Cam.right;
-              //  m_Move = v * m_CamForward;
             }
             else
             {
@@ -74,8 +73,9 @@ namespace Player
                 m_Move = v * Vector3.forward + h * Vector3.right;
             }
             if (Input.GetKey(KeyCode.LeftShift)) m_Move *= 0.5f;
-            m_Player.Move(m_Move, m_Jump);
+            m_Player.Move(m_Move, m_Jump, m_UpLaunch);
             m_Jump = false;
+            m_UpLaunch = false;
             m_MouseLook.UpdateCursorLock();
 
         }
