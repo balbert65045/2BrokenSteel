@@ -24,7 +24,7 @@ namespace Player
         [SerializeField]
         float m_GroundCheckDistance = 0.1f;
         [SerializeField]
-        float m_LaunchPower = 24f;
+        float m_RelativeLaunchPower = 240f;
 
         Rigidbody m_Rigidbody;
         Animator m_Animator;
@@ -45,7 +45,7 @@ namespace Player
             m_OrigGroundCheckDistance = m_GroundCheckDistance;
         }
 
-        public void Move(Vector3 move, bool jump, bool UpLaunch)
+        public void Move(Vector3 move, bool jump, bool UpLaunch, bool LeftLaunch, bool RightLaunch)
         {
 
             // convert the world relative moveInput vector into a local-relative
@@ -75,7 +75,7 @@ namespace Player
             //HandleLaunch(move, UpLaunch);
 
             //Update animator
-            UpdateAnimator(move, UpLaunch);
+            UpdateAnimator(move, UpLaunch, LeftLaunch, RightLaunch);
 
         }
 
@@ -103,11 +103,28 @@ namespace Player
             }
         }
 
-        public void HandleLaunch()
+        public void LaunchUp()
         {
-                m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, m_LaunchPower, m_Rigidbody.velocity.z);
+               m_Rigidbody.AddRelativeForce(0, m_RelativeLaunchPower, 0);
                 m_IsGrounded = false;
                 m_GroundCheckDistance = 0.1f;
+                BroadcastMessage("BlastLaunchUp");
+        }
+
+        public void LaunchLeft()
+        {
+            m_Rigidbody.AddRelativeForce(-m_RelativeLaunchPower*.75f, m_RelativeLaunchPower*.75f, 0);
+            m_IsGrounded = false;
+            m_GroundCheckDistance = 0.1f;
+            BroadcastMessage("BlastLaunchLeft");
+        }
+
+        public void LaunchRight()
+        {
+            m_Rigidbody.AddRelativeForce(m_RelativeLaunchPower * .75f, m_RelativeLaunchPower * .75f, 0);
+            m_IsGrounded = false;
+            m_GroundCheckDistance = 0.1f;
+            BroadcastMessage("BlastLaunchRight");
         }
 
         void ApplyExtraTurnRotation()
@@ -117,7 +134,7 @@ namespace Player
             transform.Rotate(0, m_TurnAmount * turnSpeed * Time.deltaTime, 0);
         }
 
-        void UpdateAnimator(Vector3 move, bool UpLaunch)
+        void UpdateAnimator(Vector3 move, bool UpLaunch, bool LeftLaunch, bool RightLaunch)
         {
             if (move == Vector3.zero)
             {
@@ -139,6 +156,12 @@ namespace Player
             if (UpLaunch)
             {
                 m_Animator.SetTrigger("UpLaunch");
+            } else if (LeftLaunch)
+            {
+                m_Animator.SetTrigger("LeftLaunch");
+            } else if (RightLaunch)
+            {
+                m_Animator.SetTrigger("RightLaunch");
             }
         }
 
