@@ -21,25 +21,25 @@ namespace Player
         float m_GravityMultiplier = 2f;
         [SerializeField]
         float m_MoveSpeedMultiplier = 1f;
+
+        public float m_GroundCheckDistance = 0.1f;
+        public bool m_IsGrounded;
+
         [SerializeField]
-        float m_GroundCheckDistance = 0.1f;
-        [SerializeField]
-        float m_RelativeLaunchPower = 240f;
+        float FrictionGround = .2f;
 
         Rigidbody m_Rigidbody;
         Animator m_Animator;
-        bool m_IsGrounded;
         float m_OrigGroundCheckDistance;
         float m_TurnAmount;
         float m_ForwardAmount;
         Vector3 m_GroundNormal;
-        //CapsuleCollider m_Capsule;
+
         // Use this for initialization
         void Start()
         {
             m_Rigidbody = GetComponent<Rigidbody>();
             m_Animator = GetComponent<Animator>();
-            //        m_boxCollide = GetComponent<BoxCollider>();
 
             m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
             m_OrigGroundCheckDistance = m_GroundCheckDistance;
@@ -52,13 +52,11 @@ namespace Player
             // turn amount and forward amount required to head in the desired
             // direction.
             if (move.magnitude > 1f) move.Normalize();
-           // move = transform.InverseTransformDirection(move);
             CheckGroundStatus();
           //  move = Vector3.ProjectOnPlane(move, m_GroundNormal);
             m_TurnAmount = Mathf.Atan2(move.x, move.z);
             m_ForwardAmount = move.z;
 
-            // ApplyExtraTurnRotation();
 
             // control and velocity handling is different when grounded and airborne:
             if (m_IsGrounded)
@@ -69,11 +67,6 @@ namespace Player
             {
                 HandleAirborneMovement();
             }
-
-            //control Launch direction
-
-            //HandleLaunch(move, UpLaunch);
-
             //Update animator
             UpdateAnimator(move, UpLaunch, LeftLaunch, RightLaunch);
 
@@ -86,6 +79,8 @@ namespace Player
             m_Rigidbody.AddForce(extraGravityForce);
 
             m_GroundCheckDistance = m_Rigidbody.velocity.y < 0 ? m_OrigGroundCheckDistance : 0.01f;
+
+           // Debug.Log(m_Rigidbody.velocity);
         }
 
         void HandleGroundedMovement(bool jump, Vector3 move)
@@ -98,42 +93,19 @@ namespace Player
             }
             else
             {
-         //       Debug.Log("On Ground");
-                m_Rigidbody.velocity = move * m_MoveSpeedMultiplier;
+
+                //Rigidbody input movement
+                m_Rigidbody.AddForce((move * m_MoveSpeedMultiplier * 3) , ForceMode.Force);
+                //Land Friction
+                m_Rigidbody.AddForce(new Vector3(-m_Rigidbody.velocity.x * FrictionGround, 0, -m_Rigidbody.velocity.z * FrictionGround));
+                //m_Rigidbody.AddForce(-move * FrictionGround * 3);
+                m_Rigidbody.velocity = new Vector3 (Mathf.Clamp(m_Rigidbody.velocity.x, -20, 20), 0, Mathf.Clamp(m_Rigidbody.velocity.z, -20, 20));
+                
+
             }
         }
 
-        public void LaunchUp()
-        {
-               m_Rigidbody.AddRelativeForce(0, m_RelativeLaunchPower, 0);
-                m_IsGrounded = false;
-                m_GroundCheckDistance = 0.1f;
-                BroadcastMessage("BlastLaunchUp");
-        }
-
-        public void LaunchLeft()
-        {
-            m_Rigidbody.AddRelativeForce(-m_RelativeLaunchPower*.75f, m_RelativeLaunchPower*.75f, 0);
-            m_IsGrounded = false;
-            m_GroundCheckDistance = 0.1f;
-            BroadcastMessage("BlastLaunchLeft");
-        }
-
-        public void LaunchRight()
-        {
-            m_Rigidbody.AddRelativeForce(m_RelativeLaunchPower * .75f, m_RelativeLaunchPower * .75f, 0);
-            m_IsGrounded = false;
-            m_GroundCheckDistance = 0.1f;
-            BroadcastMessage("BlastLaunchRight");
-        }
-
-        void ApplyExtraTurnRotation()
-        {
-            // help the character turn faster (this is in addition to root rotation in the animation)
-            float turnSpeed = Mathf.Lerp(m_StationaryTurnSpeed, m_MovingTurnSpeed, m_ForwardAmount);
-            transform.Rotate(0, m_TurnAmount * turnSpeed * Time.deltaTime, 0);
-        }
-
+     
         void UpdateAnimator(Vector3 move, bool UpLaunch, bool LeftLaunch, bool RightLaunch)
         {
             if (move == Vector3.zero)
@@ -175,6 +147,12 @@ namespace Player
             {
                 m_GroundNormal = hitInfo.normal;
                 m_IsGrounded = true;
+                //Debug.Log(m_Rigidbody.velocity);
+                if (-m_Rigidbody.velocity.y >= 20f)
+                {
+                    BroadcastMessage("SchockwaveLanding");
+                    Debug.Log("SendtSchockwave");
+                }
             }
             else
             {

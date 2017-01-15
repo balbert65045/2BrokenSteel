@@ -33,7 +33,7 @@ namespace Player
             m_CameraTargetRot = camera.localRotation;
             initZpos = camera.localPosition.z;
             initYpos = camera.localPosition.y; 
-            Debug.Log(initZpos);
+            //Debug.Log(initZpos);
         }
 
 

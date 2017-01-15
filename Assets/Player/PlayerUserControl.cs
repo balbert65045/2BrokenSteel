@@ -13,6 +13,8 @@ namespace Player
         public Vector3 m_CamForward;             // The current forward direction of the camera
         public Vector3 m_Move;
 
+        private bool ActiveGauntlets = true;
+
         private bool m_Jump;                      // the world-relative desired move direction, calculated from the camForward and user input.
         private bool m_UpLaunch = false;
         private bool m_LeftLaunch = false;
@@ -48,21 +50,12 @@ namespace Player
             {
                 m_Jump = CrossPlatformInputManager.GetButtonDown("Jump");
             }
-            if (!m_UpLaunch)
+            if (ActiveGauntlets)
             {
-                m_UpLaunch = CrossPlatformInputManager.GetButtonDown("UpLaunch");
+                GauntletInput();
             }
-            if (!m_LeftLaunch)
-            {
-                m_LeftLaunch = CrossPlatformInputManager.GetButtonDown("LeftLaunch");
-            }
-            if (!m_RightLaunch)
-            {
-                m_RightLaunch = CrossPlatformInputManager.GetButtonDown("RightLaunch");
-            }
+          
 
-
-            Debug.Log(m_UpLaunch);
             RotateView();
         }
 
@@ -99,7 +92,22 @@ namespace Player
             m_MouseLook.LookRotation(transform, m_Cam.transform);
         }
 
-       
+
+        private void GauntletInput()
+        {
+            if (!m_UpLaunch)
+            {
+                m_UpLaunch = CrossPlatformInputManager.GetButtonDown("UpLaunch");
+            }
+            if (!m_LeftLaunch)
+            {
+                m_LeftLaunch = CrossPlatformInputManager.GetButtonDown("LeftLaunch");
+            }
+            if (!m_RightLaunch)
+            {
+                m_RightLaunch = CrossPlatformInputManager.GetButtonDown("RightLaunch");
+            }
+        }
 
     }
 }

@@ -5,12 +5,14 @@ using UnityEngine;
 public class LaunchArm : MonoBehaviour {
 
     public GameObject Blast;
+    public GameObject Smoke;
+    private ParticleSystem SmokeParticle;
     private ParticleSystem BlastParticles; 
 
 	// Use this for initialization
 	void Start () {
-        BlastParticles = Blast.GetComponent<ParticleSystem>(); 
-
+        BlastParticles = Blast.GetComponent<ParticleSystem>();
+        SmokeParticle = Blast.GetComponent<ParticleSystem>();
     }
 	
 	// Update is called once per frame
@@ -21,7 +23,8 @@ public class LaunchArm : MonoBehaviour {
     public void BlastLaunchUp()
     {
 
-        Blast.transform.localRotation = Quaternion.Euler(90, 0, 90);
+        Blast.transform.localRotation = Quaternion.Euler(0, 0, 0);
+        SmokeParticle.Play();
         BlastParticles.Play();
     }
 
