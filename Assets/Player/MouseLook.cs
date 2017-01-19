@@ -31,14 +31,16 @@ namespace Player
         private float r;
         private float initR;
         private Quaternion CameraAngles;
+        private Vector3 CharPos;
 
         public void Init(Transform character, Transform camera)
         {
             m_CharacterTargetRot = character.localRotation;
-            m_CameraTargetRot = camera.localRotation;
+            m_CameraTargetRot = camera.rotation;
             zPos = camera.localPosition.z;
             initYpos = camera.localPosition.y;
             xPos = camera.localPosition.x;
+           
             initR = Mathf.Sqrt(Mathf.Pow(zPos, 2) + Mathf.Pow(xPos, 2));
             //Debug.Log(initZpos);
         }
@@ -52,12 +54,12 @@ namespace Player
           //  m_CharacterTargetRot *= Quaternion.Euler (0f, yRot, 0f);
             //m_CameraTargetRot *= Quaternion.Euler (-xRot, 0f, 0f);
             m_CameraTargetRot *= Quaternion.Euler(-xRot, yRot, 0);
-
+            CharPos = character.transform.position;
 
             //float initR = Mathf.Sqrt(Mathf.Pow(zPos, 2) + Mathf.Pow(xPos, 2));
- 
-           
-            if(smooth)
+
+
+            if (smooth)
             {
                 // character.localRotation = Quaternion.Slerp (character.localRotation, m_CharacterTargetRot,
                 //    smoothTime * Time.deltaTime);
@@ -73,7 +75,7 @@ namespace Player
 
                 CameraAngles = Quaternion.Euler(Mathf.Clamp(xAngle, MinimumX, MaximumX), m_CameraTargetRot.eulerAngles.y, 0);
                 
-                camera.localRotation = Quaternion.Slerp (camera.localRotation, CameraAngles,
+                camera.rotation = Quaternion.Slerp (camera.localRotation, CameraAngles,
                    smoothTime * Time.deltaTime);
             }
             else
@@ -157,14 +159,14 @@ namespace Player
                 r = (20 - CameraAngles.eulerAngles.x) * adjustmentFactorR + initR;
                 yPos = initYpos;
             }
-            Debug.Log(CameraAngles.eulerAngles.x);
+            
             //pythagrion theorm
 
             xPos = r * Mathf.Sin(Mathf.Deg2Rad * -m_CameraTargetRot.eulerAngles.y);
             zPos = -r * Mathf.Cos(Mathf.Deg2Rad * -m_CameraTargetRot.eulerAngles.y);
 
             //camera.localPosition = new Vector3(camera.localPosition.x, yPos, zPos);
-            camera.localPosition = new Vector3(xPos, yPos, zPos);
+            camera.position = new Vector3(CharPos.x + xPos, CharPos.y + yPos - 1, CharPos.z + zPos);
         }
     }
 }

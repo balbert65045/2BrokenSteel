@@ -24,6 +24,7 @@ namespace Player
 
         public float m_GroundCheckDistance = 0.1f;
         public bool m_IsGrounded;
+        public float TurnTime = 5;
 
         [SerializeField]
         float FrictionGround = .2f;
@@ -35,14 +36,26 @@ namespace Player
         float m_ForwardAmount;
         Vector3 m_GroundNormal;
 
+        private Transform m_Cam;
+
         // Use this for initialization
         void Start()
         {
             m_Rigidbody = GetComponent<Rigidbody>();
             m_Animator = GetComponent<Animator>();
 
-            m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
+            m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
             m_OrigGroundCheckDistance = m_GroundCheckDistance;
+
+            if (Camera.main != null)
+            {
+                m_Cam = Camera.main.transform;
+            }
+            else
+            {
+                Debug.Log("Camera is not found");
+            }
+
         }
 
         public void Move(Vector3 move, bool jump, bool UpLaunch, bool LeftLaunch, bool RightLaunch)
@@ -117,6 +130,7 @@ namespace Player
                 m_Animator.SetBool("Moving", true);
                 float RunSpeed = 1.35f;
                 float SlowDownSpeed = 0.8f;
+                AlignWithCamera();
                 if (move.magnitude == 1)
                 {
                     m_Animator.speed = RunSpeed;
@@ -135,6 +149,15 @@ namespace Player
             {
                 m_Animator.SetTrigger("RightLaunch");
             }
+        }
+
+        void AlignWithCamera()
+        {
+         //   transform.rotation = Quaternion.Lerp(Quaternion.Euler(0, m_Cam.transform.rotation.eulerAngles.y, 0), Quaternion.Euler(0, transform.rotation.y, 0), TurnTime * Time.deltaTime);
+            transform.rotation = (Quaternion.Euler(0, m_Cam.transform.rotation.eulerAngles.y, 0));
+            Debug.Log(m_Cam.transform.rotation.y);
+          //  Debug.Log("Cube" + transform.rotation.y);
+          //  Debug.Log("Camera" + m_Cam.transform.rotation.y);
         }
 
         void CheckGroundStatus()
