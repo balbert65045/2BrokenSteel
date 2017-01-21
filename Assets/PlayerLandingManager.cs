@@ -9,7 +9,7 @@ public class PlayerLandingManager : MonoBehaviour {
 
    public void SchockwaveLanding()
     {
-        Debug.Log("SchockwaveRecieved");
+       // Debug.Log("SchockwaveRecieved");
         Shockwave.Play();
     }
 }

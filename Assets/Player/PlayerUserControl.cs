@@ -18,7 +18,8 @@ namespace Player
         private bool m_Jump;                      // the world-relative desired move direction, calculated from the camForward and user input.
         private bool m_UpLaunch = false;
         private bool m_LeftLaunch = false;
-        private bool m_RightLaunch = false; 
+        private bool m_RightLaunch = false;
+        private bool m_BackwardLaunch = false;
 
         public Vector3 TestVector; 
 
@@ -74,15 +75,16 @@ namespace Player
             }
             else
             {
-                // we use world-relative directions in the case of no main camera
+                // we use world-relativew directions in the case of no main camera
                 m_Move = v * Vector3.forward + h * Vector3.right;
             }
             if (Input.GetKey(KeyCode.LeftShift)) m_Move *= 0.5f;
-            m_Player.Move(m_Move, m_Jump, m_UpLaunch, m_LeftLaunch, m_RightLaunch);
+            m_Player.Move(m_Move, m_Jump, m_UpLaunch, m_LeftLaunch, m_RightLaunch, m_BackwardLaunch);
             m_Jump = false;
             m_UpLaunch = false;
             m_LeftLaunch = false;
             m_RightLaunch = false;
+            m_BackwardLaunch = false;
             m_MouseLook.UpdateCursorLock();
 
         }
@@ -107,6 +109,15 @@ namespace Player
             {
                 m_RightLaunch = CrossPlatformInputManager.GetButtonDown("RightLaunch");
             }
+            if (!m_BackwardLaunch)
+            {
+                m_BackwardLaunch = CrossPlatformInputManager.GetButtonDown("BackLaunch");
+            }
+        }
+
+        public void UpdateXMin(float value)
+        {
+            m_MouseLook.MinimumX = value;
         }
 
     }

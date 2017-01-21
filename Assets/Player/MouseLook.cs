@@ -80,15 +80,16 @@ namespace Player
             }
             else
             {
-                float xAngle; 
-                if (m_CameraTargetRot.eulerAngles.x > 180)
-                {
-                    xAngle = -(360 - m_CameraTargetRot.eulerAngles.x);
-                }
-                else
-                {
-                    xAngle = m_CameraTargetRot.eulerAngles.x;
-                }
+                float xAngle = m_CameraTargetRot.eulerAngles.x; 
+               // if (m_CameraTargetRot.eulerAngles.x > 180)
+               // {
+               //     xAngle = -(360 - m_CameraTargetRot.eulerAngles.x);
+               // }
+             //   else
+             //   {
+             //       xAngle = m_CameraTargetRot.eulerAngles.x;
+             //   }
+
                 //  float xAngle = Mathf.Clamp(m_CameraTargetRot.eulerAngles.x + 90, MinimumX + 90, MaximumX + 90) - 90f;
                 CameraAngles = Quaternion.Euler(Mathf.Clamp(xAngle, MinimumX, MaximumX), m_CameraTargetRot.eulerAngles.y, 0);
                 camera.localRotation = CameraAngles;
@@ -143,10 +144,11 @@ namespace Player
         {
             float adjustmentFactorR = .1f;
             float adjustmentFactorY = .17f;
-            if (180 - CameraAngles.eulerAngles.x < 0)
+            if (CameraAngles.eulerAngles.x > 180)
             {
-                r = ((380 - CameraAngles.eulerAngles.x)) * adjustmentFactorR + initR;
-                yPos = ((CameraAngles.eulerAngles.x - 380)) * adjustmentFactorY + initYpos;
+               // Debug.Log(CameraAngles.eulerAngles.x);
+                r = ((CameraAngles.eulerAngles.x) - 380) * adjustmentFactorR + initR;
+                yPos = ((CameraAngles.eulerAngles.x) - 380) * adjustmentFactorY + initYpos;
 
             }
             else if (CameraAngles.eulerAngles.x <= 20)

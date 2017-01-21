@@ -24,6 +24,10 @@ public class WeaponController : MonoBehaviour {
         {
             BroadcastMessage("LaunchRight");
         }
+        else if (type == 3)
+        {
+            BroadcastMessage("LaunchBackward");
+        }
         else
         {
             Debug.LogWarning("Type used in animation cuncussion animation out of range, Use 0-2");

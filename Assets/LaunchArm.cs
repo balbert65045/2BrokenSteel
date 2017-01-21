@@ -12,7 +12,7 @@ public class LaunchArm : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
         BlastParticles = Blast.GetComponent<ParticleSystem>();
-        SmokeParticle = Blast.GetComponent<ParticleSystem>();
+
     }
 	
 	// Update is called once per frame
@@ -24,7 +24,7 @@ public class LaunchArm : MonoBehaviour {
     {
 
         Blast.transform.localRotation = Quaternion.Euler(0, 0, 0);
-        SmokeParticle.Play();
+       
         BlastParticles.Play();
     }
 
@@ -44,5 +44,9 @@ public class LaunchArm : MonoBehaviour {
             Blast.transform.localRotation = Quaternion.Euler(60, 0, 90);
             BlastParticles.Play();
         }
+    }
+    public void BlastLaunchBackward()
+    {
+        BlastParticles.Play();
     }
 }

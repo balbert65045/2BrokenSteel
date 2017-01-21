@@ -36,7 +36,9 @@ namespace Player
         float m_ForwardAmount;
         Vector3 m_GroundNormal;
 
+        private bool moving; 
         private Transform m_Cam;
+
 
         // Use this for initialization
         void Start()
@@ -46,6 +48,7 @@ namespace Player
 
             m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
             m_OrigGroundCheckDistance = m_GroundCheckDistance;
+            //StartXMin = m_MouseLook.MinimumX; 
 
             if (Camera.main != null)
             {
@@ -58,7 +61,7 @@ namespace Player
 
         }
 
-        public void Move(Vector3 move, bool jump, bool UpLaunch, bool LeftLaunch, bool RightLaunch)
+        public void Move(Vector3 move, bool jump, bool UpLaunch, bool LeftLaunch, bool RightLaunch, bool BackwardLaunch)
         {
 
             // convert the world relative moveInput vector into a local-relative
@@ -74,30 +77,49 @@ namespace Player
             // control and velocity handling is different when grounded and airborne:
             if (m_IsGrounded)
             {
+                SendMessage("UpdateXMin", -10);
                 HandleGroundedMovement(jump, move);
             }
             else
             {
-                HandleAirborneMovement();
+                HandleAirborneMovement(move);
             }
             //Update animator
-            UpdateAnimator(move, UpLaunch, LeftLaunch, RightLaunch);
+            UpdateAnimator(move, UpLaunch, LeftLaunch, RightLaunch, BackwardLaunch);
 
         }
 
-        void HandleAirborneMovement()
+        void HandleAirborneMovement(Vector3 move)
         {
+         
             // apply extra gravity from multiplier:
             Vector3 extraGravityForce = (Physics.gravity * m_GravityMultiplier) - Physics.gravity;
             m_Rigidbody.AddForce(extraGravityForce);
 
+            HandleAirborneRotation(move);
             m_GroundCheckDistance = m_Rigidbody.velocity.y < 0 ? m_OrigGroundCheckDistance : 0.01f;
+        }
 
-           // Debug.Log(m_Rigidbody.velocity);
+        void HandleAirborneRotation(Vector3 move)
+        {
+            // allow rotation
+            m_Rigidbody.constraints = RigidbodyConstraints.None;
+
+
+            SendMessage("UpdateXMin", -90);
+            // rotate self in mid air
+            transform.rotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
+
+
         }
 
         void HandleGroundedMovement(bool jump, Vector3 move)
         {
+            ResetRotation();
+            if (moving)
+            {
+                AlignWithCamera();
+            }
             if (jump)
             {
                 m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, m_JumpPower, m_Rigidbody.velocity.z);
@@ -106,7 +128,7 @@ namespace Player
             }
             else
             {
-
+              
                 //Rigidbody input movement
                 m_Rigidbody.AddForce((move * m_MoveSpeedMultiplier * 3) , ForceMode.Force);
                 //Land Friction
@@ -119,7 +141,7 @@ namespace Player
         }
 
      
-        void UpdateAnimator(Vector3 move, bool UpLaunch, bool LeftLaunch, bool RightLaunch)
+        void UpdateAnimator(Vector3 move, bool UpLaunch, bool LeftLaunch, bool RightLaunch, bool BackwardLaunch)
         {
             if (move == Vector3.zero)
             {
@@ -127,10 +149,11 @@ namespace Player
             }
             else
             {
+                moving = true; 
                 m_Animator.SetBool("Moving", true);
                 float RunSpeed = 1.35f;
                 float SlowDownSpeed = 0.8f;
-                AlignWithCamera();
+                
                 if (move.magnitude == 1)
                 {
                     m_Animator.speed = RunSpeed;
@@ -149,13 +172,32 @@ namespace Player
             {
                 m_Animator.SetTrigger("RightLaunch");
             }
+            else if (BackwardLaunch)
+            {
+                m_Animator.SetTrigger("BackwardLaunch");
+            }
+        }
+
+        void ResetRotation()
+        {
+            {
+                m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+                transform.rotation = (Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0));
+              
+            }
         }
 
         void AlignWithCamera()
         {
          //   transform.rotation = Quaternion.Lerp(Quaternion.Euler(0, m_Cam.transform.rotation.eulerAngles.y, 0), Quaternion.Euler(0, transform.rotation.y, 0), TurnTime * Time.deltaTime);
-            transform.rotation = (Quaternion.Euler(0, m_Cam.transform.rotation.eulerAngles.y, 0));
-            Debug.Log(m_Cam.transform.rotation.y);
+         if (m_IsGrounded)
+            {
+                transform.rotation = (Quaternion.Euler(0, m_Cam.transform.rotation.eulerAngles.y, 0));
+            }
+         else
+            {
+                transform.rotation = (Quaternion.Euler(transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z));
+            }
           //  Debug.Log("Cube" + transform.rotation.y);
           //  Debug.Log("Camera" + m_Cam.transform.rotation.y);
         }
@@ -174,7 +216,7 @@ namespace Player
                 if (-m_Rigidbody.velocity.y >= 20f)
                 {
                     BroadcastMessage("SchockwaveLanding");
-                    Debug.Log("SendtSchockwave");
+                   // Debug.Log("SendtSchockwave");
                 }
             }
             else
