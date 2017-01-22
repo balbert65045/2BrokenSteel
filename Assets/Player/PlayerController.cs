@@ -146,6 +146,7 @@ namespace Player
             if (move == Vector3.zero)
             {
                 m_Animator.SetBool("Moving", false);
+                m_Animator.SetBool(("RapidFire"), false);
             }
             else
             {
@@ -164,17 +165,26 @@ namespace Player
             }
             if (UpLaunch)
             {
+                m_Animator.SetBool(("RapidFire"), false);
                 m_Animator.SetTrigger("UpLaunch");
+
             } else if (LeftLaunch)
             {
+                m_Animator.SetBool(("RapidFire"), false);
                 m_Animator.SetTrigger("LeftLaunch");
+
             } else if (RightLaunch)
             {
+                m_Animator.SetBool(("RapidFire"), false);
                 m_Animator.SetTrigger("RightLaunch");
             }
             else if (BackwardLaunch)
             {
-                m_Animator.SetTrigger("BackwardLaunch");
+                m_Animator.SetBool(("RapidFire"), true);
+            }
+            else
+            {
+                m_Animator.SetBool(("RapidFire"), false);
             }
         }
 

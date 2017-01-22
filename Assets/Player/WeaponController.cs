@@ -26,7 +26,11 @@ public class WeaponController : MonoBehaviour {
         }
         else if (type == 3)
         {
-            BroadcastMessage("LaunchBackward");
+            BroadcastMessage("RapidFireRight");
+        }
+        else if(type == 4)
+        {
+            BroadcastMessage("RapidFireLeft");
         }
         else
         {

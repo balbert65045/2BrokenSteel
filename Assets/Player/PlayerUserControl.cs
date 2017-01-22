@@ -111,7 +111,7 @@ namespace Player
             }
             if (!m_BackwardLaunch)
             {
-                m_BackwardLaunch = CrossPlatformInputManager.GetButtonDown("BackLaunch");
+                m_BackwardLaunch = CrossPlatformInputManager.GetButton("BackLaunch");
             }
         }
 

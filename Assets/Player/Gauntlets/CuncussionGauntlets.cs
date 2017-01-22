@@ -59,5 +59,17 @@ namespace Player
             BroadcastMessage("BlastLaunchBackward");
         }
 
+        public void RapidFireRight()
+        {
+            PlayerRigidBody.AddRelativeForce(0, 0, -m_RelativeLaunchPower);
+            BroadcastMessage("BlastRapidFireRight");
+        }
+
+        public void RapidFireLeft()
+        {
+            PlayerRigidBody.AddRelativeForce(0, 0, -m_RelativeLaunchPower);
+            BroadcastMessage("BlastRapidFireLeft");
+        }
+
     }
 }

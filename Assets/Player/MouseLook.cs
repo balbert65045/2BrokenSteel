@@ -143,12 +143,13 @@ namespace Player
         void CreateCameraPosition(Transform camera)
         {
             float adjustmentFactorR = .1f;
+            float SecondAsjust = .1f;
             float adjustmentFactorY = .17f;
             if (CameraAngles.eulerAngles.x > 180)
             {
                // Debug.Log(CameraAngles.eulerAngles.x);
-                r = ((CameraAngles.eulerAngles.x) - 380) * adjustmentFactorR + initR;
-                yPos = ((CameraAngles.eulerAngles.x) - 380) * adjustmentFactorY + initYpos;
+                r = Mathf.Clamp(((CameraAngles.eulerAngles.x) - 380) * (adjustmentFactorR) + initR, 1f, 20f);
+                yPos = Mathf.Clamp(((CameraAngles.eulerAngles.x) - 380) * (adjustmentFactorY) + initYpos, -3, 20);
 
             }
             else if (CameraAngles.eulerAngles.x <= 20)
