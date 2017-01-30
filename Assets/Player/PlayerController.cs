@@ -61,7 +61,7 @@ namespace Player
 
         }
 
-        public void Move(Vector3 move, bool jump, bool UpLaunch, bool LeftLaunch, bool RightLaunch, bool BackwardLaunch)
+        public void Move(Vector3 move, bool jump, bool UpLaunch, bool LeftLaunch, bool RightLaunch, bool BackwardLaunch, bool ActiveGauntlets, bool ActiveSword, bool WeaponSwitch)
         {
 
             // convert the world relative moveInput vector into a local-relative
@@ -85,7 +85,7 @@ namespace Player
                 HandleAirborneMovement(move);
             }
             //Update animator
-            UpdateAnimator(move, UpLaunch, LeftLaunch, RightLaunch, BackwardLaunch);
+            UpdateAnimator(move, UpLaunch, LeftLaunch, RightLaunch, BackwardLaunch, ActiveGauntlets, ActiveSword, WeaponSwitch);
 
         }
 
@@ -141,7 +141,7 @@ namespace Player
         }
 
      
-        void UpdateAnimator(Vector3 move, bool UpLaunch, bool LeftLaunch, bool RightLaunch, bool BackwardLaunch)
+        void UpdateAnimator(Vector3 move, bool UpLaunch, bool LeftLaunch, bool RightLaunch, bool BackwardLaunch, bool ActiveGauntlets, bool ActiveSword, bool WeaponSwitch)
         {
             if (move == Vector3.zero)
             {
@@ -163,28 +163,52 @@ namespace Player
                     m_Animator.speed = SlowDownSpeed;
                 }
             }
-            if (UpLaunch)
+            if (ActiveGauntlets)
             {
-                m_Animator.SetBool(("RapidFire"), false);
-                m_Animator.SetTrigger("UpLaunch");
+               Debug.Log("ActiveGauntlets");
+                if (WeaponSwitch)
+                {
+                    m_Animator.SetBool(("RapidFire"), false);
+                    m_Animator.SetTrigger("GauntletsOutTrig");
+                }
+                else if (UpLaunch)
+                {
+                    m_Animator.SetBool(("RapidFire"), false);
+                    m_Animator.SetTrigger("UpLaunch");
 
-            } else if (LeftLaunch)
-            {
-                m_Animator.SetBool(("RapidFire"), false);
-                m_Animator.SetTrigger("LeftLaunch");
+                }
+                else if (LeftLaunch)
+                {
+                    m_Animator.SetBool(("RapidFire"), false);
+                    m_Animator.SetTrigger("LeftLaunch");
 
-            } else if (RightLaunch)
-            {
-                m_Animator.SetBool(("RapidFire"), false);
-                m_Animator.SetTrigger("RightLaunch");
+                }
+                else if (RightLaunch)
+                {
+                    m_Animator.SetBool(("RapidFire"), false);
+                    m_Animator.SetTrigger("RightLaunch");
+                }
+                else if (BackwardLaunch)
+                {
+                    m_Animator.SetBool(("RapidFire"), true);
+                }
+                else
+                {
+                    m_Animator.SetBool(("RapidFire"), false);
+                }
             }
-            else if (BackwardLaunch)
+
+            if (ActiveSword)
             {
-                m_Animator.SetBool(("RapidFire"), true);
-            }
-            else
-            {
-                m_Animator.SetBool(("RapidFire"), false);
+                Debug.Log("ActiveSword");
+                if (WeaponSwitch)
+                {
+                    m_Animator.SetTrigger("SwordOutTrig");
+                }
+                else if (BackwardLaunch)
+                {
+                    m_Animator.SetBool(("RapidFire"), true);
+                }
             }
         }
 

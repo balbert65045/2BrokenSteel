@@ -14,6 +14,8 @@ namespace Player
         public Vector3 m_Move;
 
         private bool ActiveGauntlets = true;
+        private bool ActiveSword = false;
+        private bool WeaponSwitch = false; 
 
         private bool m_Jump;                      // the world-relative desired move direction, calculated from the camForward and user input.
         private bool m_UpLaunch = false;
@@ -21,7 +23,9 @@ namespace Player
         private bool m_RightLaunch = false;
         private bool m_BackwardLaunch = false;
 
-        public Vector3 TestVector; 
+        public Vector3 TestVector;
+
+        private float SlowMoTimeStart;
 
         [SerializeField]
         private MouseLook m_MouseLook;
@@ -51,11 +55,19 @@ namespace Player
             {
                 m_Jump = CrossPlatformInputManager.GetButtonDown("Jump");
             }
-            if (ActiveGauntlets)
+            if (CrossPlatformInputManager.GetButtonDown("ShiftWeapon"))
             {
-                GauntletInput();
+                SlowMoController(Time.realtimeSinceStartup);
+                CheckWeaponChange();
             }
-          
+
+            WeaponInput();
+            
+            if (Time.realtimeSinceStartup > SlowMoTimeStart + 1)
+            {
+                Time.timeScale = 1f;
+                Time.fixedDeltaTime = 0.02F * Time.timeScale;
+            }
 
             RotateView();
         }
@@ -79,14 +91,22 @@ namespace Player
                 m_Move = v * Vector3.forward + h * Vector3.right;
             }
             if (Input.GetKey(KeyCode.LeftShift)) m_Move *= 0.5f;
-            m_Player.Move(m_Move, m_Jump, m_UpLaunch, m_LeftLaunch, m_RightLaunch, m_BackwardLaunch);
+            m_Player.Move(m_Move, m_Jump, m_UpLaunch, m_LeftLaunch, m_RightLaunch, m_BackwardLaunch, ActiveGauntlets, ActiveSword, WeaponSwitch);
             m_Jump = false;
             m_UpLaunch = false;
             m_LeftLaunch = false;
             m_RightLaunch = false;
             m_BackwardLaunch = false;
+            WeaponSwitch = false;
             m_MouseLook.UpdateCursorLock();
 
+        }
+
+        private void SlowMoController(float time)
+        {
+            SlowMoTimeStart = time; 
+            Time.timeScale = .4f;
+            Time.fixedDeltaTime = 0.02F * Time.timeScale;
         }
 
         private void RotateView()
@@ -94,8 +114,25 @@ namespace Player
             m_MouseLook.LookRotation(transform, m_Cam.transform);
         }
 
+        private void CheckWeaponChange() {
+            WeaponSwitch = true;
+            if (ActiveGauntlets)
+            {
+                ActiveGauntlets = false;
+                ActiveSword = true;
+            }
+            else if (ActiveSword)
+            {
+                ActiveGauntlets = true;
+                ActiveSword = false;
+            }
 
-        private void GauntletInput()
+        }
+
+
+
+
+        private void WeaponInput()
         {
             if (!m_UpLaunch)
             {

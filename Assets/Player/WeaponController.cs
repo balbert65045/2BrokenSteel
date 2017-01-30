@@ -38,4 +38,9 @@ public class WeaponController : MonoBehaviour {
         }
     }
 
+    public void Slash(int type)
+    {
+
+    }
+
 }
