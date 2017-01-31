@@ -18,10 +18,10 @@ namespace Player
         private bool WeaponSwitch = false; 
 
         private bool m_Jump;                      // the world-relative desired move direction, calculated from the camForward and user input.
-        private bool m_UpLaunch = false;
-        private bool m_LeftLaunch = false;
-        private bool m_RightLaunch = false;
-        private bool m_BackwardLaunch = false;
+        private bool m_QuickMove = false;
+        private bool m_LeftMove = false;
+        private bool m_RightMove = false;
+        private bool m_SpecialMove = false;
 
         public Vector3 TestVector;
 
@@ -91,12 +91,12 @@ namespace Player
                 m_Move = v * Vector3.forward + h * Vector3.right;
             }
             if (Input.GetKey(KeyCode.LeftShift)) m_Move *= 0.5f;
-            m_Player.Move(m_Move, m_Jump, m_UpLaunch, m_LeftLaunch, m_RightLaunch, m_BackwardLaunch, ActiveGauntlets, ActiveSword, WeaponSwitch);
+            m_Player.Move(m_Move, m_Jump, m_QuickMove, m_LeftMove, m_RightMove, m_SpecialMove, ActiveGauntlets, ActiveSword, WeaponSwitch);
             m_Jump = false;
-            m_UpLaunch = false;
-            m_LeftLaunch = false;
-            m_RightLaunch = false;
-            m_BackwardLaunch = false;
+            m_QuickMove = false;
+            m_LeftMove = false;
+            m_RightMove = false;
+            m_SpecialMove = false;
             WeaponSwitch = false;
             m_MouseLook.UpdateCursorLock();
 
@@ -134,21 +134,21 @@ namespace Player
 
         private void WeaponInput()
         {
-            if (!m_UpLaunch)
+            if (!m_QuickMove)
             {
-                m_UpLaunch = CrossPlatformInputManager.GetButtonDown("UpLaunch");
+                m_QuickMove = CrossPlatformInputManager.GetButtonDown("QuickMove");
             }
-            if (!m_LeftLaunch)
+            if (!m_LeftMove)
             {
-                m_LeftLaunch = CrossPlatformInputManager.GetButtonDown("LeftLaunch");
+                m_LeftMove = CrossPlatformInputManager.GetButtonDown("LeftMove");
             }
-            if (!m_RightLaunch)
+            if (!m_RightMove)
             {
-                m_RightLaunch = CrossPlatformInputManager.GetButtonDown("RightLaunch");
+                m_RightMove = CrossPlatformInputManager.GetButtonDown("RightMove");
             }
-            if (!m_BackwardLaunch)
+            if (!m_SpecialMove)
             {
-                m_BackwardLaunch = CrossPlatformInputManager.GetButton("BackLaunch");
+                m_SpecialMove = CrossPlatformInputManager.GetButton("SpecialMove");
             }
         }
 

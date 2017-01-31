@@ -61,7 +61,7 @@ namespace Player
 
         }
 
-        public void Move(Vector3 move, bool jump, bool UpLaunch, bool LeftLaunch, bool RightLaunch, bool BackwardLaunch, bool ActiveGauntlets, bool ActiveSword, bool WeaponSwitch)
+        public void Move(Vector3 move, bool jump, bool QuickMove, bool LeftMove, bool RightMove, bool SpecialMove, bool ActiveGauntlets, bool ActiveSword, bool WeaponSwitch)
         {
 
             // convert the world relative moveInput vector into a local-relative
@@ -85,7 +85,7 @@ namespace Player
                 HandleAirborneMovement(move);
             }
             //Update animator
-            UpdateAnimator(move, UpLaunch, LeftLaunch, RightLaunch, BackwardLaunch, ActiveGauntlets, ActiveSword, WeaponSwitch);
+            UpdateAnimator(move, QuickMove, LeftMove, RightMove, SpecialMove, ActiveGauntlets, ActiveSword, WeaponSwitch);
 
         }
 
@@ -141,7 +141,7 @@ namespace Player
         }
 
      
-        void UpdateAnimator(Vector3 move, bool UpLaunch, bool LeftLaunch, bool RightLaunch, bool BackwardLaunch, bool ActiveGauntlets, bool ActiveSword, bool WeaponSwitch)
+        void UpdateAnimator(Vector3 move, bool QuickMove, bool LeftMove, bool RightMove, bool SpecialMove, bool ActiveGauntlets, bool ActiveSword, bool WeaponSwitch)
         {
             if (move == Vector3.zero)
             {
@@ -171,24 +171,24 @@ namespace Player
                     m_Animator.SetBool(("RapidFire"), false);
                     m_Animator.SetTrigger("GauntletsOutTrig");
                 }
-                else if (UpLaunch)
+                else if (QuickMove)
                 {
                     m_Animator.SetBool(("RapidFire"), false);
                     m_Animator.SetTrigger("UpLaunch");
 
                 }
-                else if (LeftLaunch)
+                else if (LeftMove)
                 {
                     m_Animator.SetBool(("RapidFire"), false);
                     m_Animator.SetTrigger("LeftLaunch");
 
                 }
-                else if (RightLaunch)
+                else if (RightMove)
                 {
                     m_Animator.SetBool(("RapidFire"), false);
                     m_Animator.SetTrigger("RightLaunch");
                 }
-                else if (BackwardLaunch)
+                else if (SpecialMove)
                 {
                     m_Animator.SetBool(("RapidFire"), true);
                 }
@@ -205,9 +205,13 @@ namespace Player
                 {
                     m_Animator.SetTrigger("SwordOutTrig");
                 }
-                else if (BackwardLaunch)
+                else if (QuickMove)
                 {
-                    m_Animator.SetBool(("RapidFire"), true);
+                    m_Animator.SetTrigger(("QuickAttack"));
+                }
+                else if (SpecialMove)
+                {
+                    m_Animator.SetTrigger("StrongAttack");
                 }
             }
         }

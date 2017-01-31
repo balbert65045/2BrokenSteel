@@ -35,7 +35,7 @@ namespace Player
         public void LaunchLeft()
         {
             PlayerRigidBody.constraints = RigidbodyConstraints.None;
-            PlayerRigidBody.AddRelativeForce(-m_RelativeLaunchPower * .75f, m_RelativeLaunchPower * .75f, 0);
+            PlayerRigidBody.AddRelativeForce(-m_RelativeLaunchPower * 1.25f, m_RelativeLaunchPower * .75f, 0);
             PlayerRigidBody.AddRelativeTorque(0, 0, m_RelativeTourquePower);
            PlayerController.m_IsGrounded = false;
             PlayerController.m_GroundCheckDistance = 0.1f;
@@ -46,7 +46,7 @@ namespace Player
         public void LaunchRight()
         {
             PlayerRigidBody.constraints = RigidbodyConstraints.None;
-            PlayerRigidBody.AddRelativeForce(m_RelativeLaunchPower * .75f, m_RelativeLaunchPower * .75f, 0);
+            PlayerRigidBody.AddRelativeForce(m_RelativeLaunchPower * 1.25f, m_RelativeLaunchPower * .75f, 0);
             PlayerRigidBody.AddRelativeTorque(0, 0, -m_RelativeTourquePower);
             PlayerController.m_IsGrounded = false;
             PlayerController.m_GroundCheckDistance = 0.1f;
