@@ -40,7 +40,22 @@ public class WeaponController : MonoBehaviour {
 
     public void Slash(int type)
     {
-
+        if (type == 0)
+        {
+            BroadcastMessage("QuickAttack");
+        }
+        else if (type == 1)
+        {
+            BroadcastMessage("StrongAttack");
+        }
+        else if (type == 2)
+        {
+            BroadcastMessage("SideStepRight");
+        }
+        else if (type == 3)
+        {
+            BroadcastMessage("SideStepLeft");
+        }
     }
 
 }

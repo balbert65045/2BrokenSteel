@@ -146,10 +146,22 @@ namespace Player
             {
                 m_RightMove = CrossPlatformInputManager.GetButtonDown("RightMove");
             }
-            if (!m_SpecialMove)
+            if (ActiveGauntlets)
             {
-                m_SpecialMove = CrossPlatformInputManager.GetButton("SpecialMove");
+                if (!m_SpecialMove)
+                {
+                    m_SpecialMove = CrossPlatformInputManager.GetButton("SpecialMove");
+                }
             }
+            else if (ActiveSword)
+            {
+                if (!m_SpecialMove)
+                {
+                    m_SpecialMove = CrossPlatformInputManager.GetButtonDown("SpecialMove");
+                }
+            }
+
+          
         }
 
         public void UpdateXMin(float value)

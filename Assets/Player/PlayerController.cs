@@ -213,6 +213,15 @@ namespace Player
                 {
                     m_Animator.SetTrigger("StrongAttack");
                 }
+                else if (RightMove)
+                {
+                    m_Animator.SetTrigger("SideStepRight");
+                }
+                else if (LeftMove)
+                {
+                    m_Animator.SetTrigger("SideStepLeft");
+                }
+                
             }
         }
 
@@ -234,7 +243,8 @@ namespace Player
             }
          else
             {
-                transform.rotation = (Quaternion.Euler(transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z));
+                 transform.rotation = (Quaternion.Euler(transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z));
+               // transform.rotation = (Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z));
             }
           //  Debug.Log("Cube" + transform.rotation.y);
           //  Debug.Log("Camera" + m_Cam.transform.rotation.y);
