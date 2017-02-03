@@ -35,26 +35,35 @@ namespace Player
         {
             if (!PlayerController.m_IsGrounded)
             {
+                PlayerController.Atacking = true; 
                 PlayerRigidBody.AddRelativeForce(0, -StrongAttackForce, 0);
-               // PlayerRigidBody.AddRelativeTorque(StrongAttackTorque, 0, 0);
+                PlayerRigidBody.AddRelativeTorque(StrongAttackTorque, 0, 0);
             }
             //Debug.Log("StrongAttack!!!");
         }
 
-     //   public void SideStepRight()
-     //   {
+       public void SideStepRight()
+        {
             //PlayerRigidBody.AddRelativeTorque(0, SideStepTorque, 0);
             //Possibly change this to a spinning attack but must adjust mouse look snap
-      //      PlayerRigidBody.AddRelativeForce(-10* SideStepForce, 0, SideStepForce);
+            PlayerController.Atacking = true;
+            PlayerRigidBody.AddRelativeForce(-10* SideStepForce, 700, 5*SideStepForce);
+            PlayerRigidBody.AddRelativeTorque(0, StrongAttackTorque, 0);
       //      Debug.Log("SideStepedRight!");
-      //  }
+        }
 
-     //   public void SideStepLeft()
-     //   {
+        public void SideStepLeft()
+        {
             //Possibly change this to a spinning attack but must adjust mouse look snap
-      //      PlayerRigidBody.AddRelativeForce(10*SideStepForce, 0, SideStepForce);
-      //      Debug.Log("SideStepedLeft!");
-      //  }
+            PlayerController.Atacking = true;
+            PlayerRigidBody.AddRelativeForce(10 * SideStepForce, 700, 5 * SideStepForce);
+            PlayerRigidBody.AddRelativeTorque(0, -StrongAttackTorque, 0);
+        }
+
+        public void StopAttacking()
+        {
+            PlayerController.Atacking = false;
+        }
     }
 }
 

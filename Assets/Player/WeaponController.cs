@@ -58,4 +58,9 @@ public class WeaponController : MonoBehaviour {
         }
     }
 
+    public void Stop()
+    {
+        BroadcastMessage("StopAttacking");
+    }
+
 }

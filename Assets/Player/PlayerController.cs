@@ -36,7 +36,8 @@ namespace Player
         float m_ForwardAmount;
         Vector3 m_GroundNormal;
 
-        private bool moving; 
+        private bool moving;
+        public bool Atacking = false; 
         private Transform m_Cam;
 
 
@@ -108,18 +109,29 @@ namespace Player
 
             SendMessage("UpdateXMin", -90);
             // rotate self in mid air
-            transform.rotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
+            if (Atacking)
+            {
+                transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
+            }
+            else
+            {
+                transform.rotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
+            }
+           // transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
 
+            {
+             //   transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
+            }
 
         }
 
         void HandleGroundedMovement(bool jump, Vector3 move)
         {
-            ResetRotation();
-            if (moving)
-            {
-                AlignWithCamera();
-            }
+           
+
+
+            AlignWithCamera();
+
             if (jump)
             {
                 m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, m_JumpPower, m_Rigidbody.velocity.z);
@@ -135,12 +147,42 @@ namespace Player
                 m_Rigidbody.AddForce(new Vector3(-m_Rigidbody.velocity.x * FrictionGround, 0, -m_Rigidbody.velocity.z * FrictionGround));
                 //m_Rigidbody.AddForce(-move * FrictionGround * 3);
                 m_Rigidbody.velocity = new Vector3 (Mathf.Clamp(m_Rigidbody.velocity.x, -20, 20), 0, Mathf.Clamp(m_Rigidbody.velocity.z, -20, 20));
-                
+            }
+        }
+
+        void ResetRotation()
+        {
+            {
+                m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+                transform.rotation = (Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0));
 
             }
         }
 
-     
+        void AlignWithCamera()
+        {
+            //   transform.rotation = Quaternion.Lerp(Quaternion.Euler(0, m_Cam.transform.rotation.eulerAngles.y, 0), Quaternion.Euler(0, transform.rotation.y, 0), TurnTime * Time.deltaTime);
+            if (Atacking)
+            {
+                m_IsGrounded = false;
+                m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ; ;
+                transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
+            }
+            else if (moving)
+            {
+                transform.rotation = (Quaternion.Euler(0, m_Cam.transform.rotation.eulerAngles.y, 0));
+                ResetRotation();
+            }
+
+
+
+                //   transform.rotation = (Quaternion.Euler(transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z));
+                // transform.rotation = (Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z));
+            //  Debug.Log("Cube" + transform.rotation.y);
+            //  Debug.Log("Camera" + m_Cam.transform.rotation.y);
+        }
+
+
         void UpdateAnimator(Vector3 move, bool QuickMove, bool LeftMove, bool RightMove, bool SpecialMove, bool ActiveGauntlets, bool ActiveSword, bool WeaponSwitch)
         {
             if (move == Vector3.zero)
@@ -225,54 +267,35 @@ namespace Player
             }
         }
 
-        void ResetRotation()
-        {
-            {
-                m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
-                transform.rotation = (Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0));
-              
-            }
-        }
 
-        void AlignWithCamera()
-        {
-         //   transform.rotation = Quaternion.Lerp(Quaternion.Euler(0, m_Cam.transform.rotation.eulerAngles.y, 0), Quaternion.Euler(0, transform.rotation.y, 0), TurnTime * Time.deltaTime);
-         if (m_IsGrounded)
-            {
-                transform.rotation = (Quaternion.Euler(0, m_Cam.transform.rotation.eulerAngles.y, 0));
-            }
-         else
-            {
-                 transform.rotation = (Quaternion.Euler(transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z));
-               // transform.rotation = (Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z));
-            }
-          //  Debug.Log("Cube" + transform.rotation.y);
-          //  Debug.Log("Camera" + m_Cam.transform.rotation.y);
-        }
 
         void CheckGroundStatus()
         {
-            RaycastHit hitInfo;
+
+                RaycastHit hitInfo;
 #if UNITY_EDITOR
-            Debug.DrawLine(transform.position + (Vector3.up * 0.1f), transform.position + (Vector3.up * 0.1f) + (Vector3.down * m_GroundCheckDistance));
+                Debug.DrawLine(transform.position + (Vector3.up * 0.1f), transform.position + (Vector3.up * 0.1f) + (Vector3.down * m_GroundCheckDistance));
 #endif
-            if (Physics.Raycast(transform.position + (Vector3.up * 0.1f), Vector3.down, out hitInfo, m_GroundCheckDistance))
-            {
-                m_GroundNormal = hitInfo.normal;
-                m_IsGrounded = true;
-                //Debug.Log(m_Rigidbody.velocity);
-                if (-m_Rigidbody.velocity.y >= 20f)
+                if (Physics.Raycast(transform.position + (Vector3.up * 0.1f), Vector3.down, out hitInfo, m_GroundCheckDistance))
                 {
-                    BroadcastMessage("SchockwaveLanding");
-                   // Debug.Log("SendtSchockwave");
+                    m_GroundNormal = hitInfo.normal;
+                    m_IsGrounded = true;
+                    //Debug.Log(m_Rigidbody.velocity);
+                    if (-m_Rigidbody.velocity.y >= 20f)
+                    {
+                        BroadcastMessage("SchockwaveLanding");
+                        // Debug.Log("SendtSchockwave");
+                    }
                 }
-            }
-            else
-            {
-                m_IsGrounded = false;
-                m_GroundNormal = Vector3.up;
-            }
+                else
+                {
+                    m_IsGrounded = false;
+                    m_GroundNormal = Vector3.up;
+                }
+
 
         }
+
+
     }
 }
