@@ -40,6 +40,13 @@ namespace Player
         public bool Atacking = false; 
         private Transform m_Cam;
 
+        public bool RapidFiring = false;
+        public bool turnBackward = false;
+        private bool turnForward = false;
+        public bool AllowMovement = true;
+
+        private Quaternion OldRotation;
+
 
         // Use this for initialization
         void Start()
@@ -50,6 +57,7 @@ namespace Player
             m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
             m_OrigGroundCheckDistance = m_GroundCheckDistance;
             //StartXMin = m_MouseLook.MinimumX; 
+            OldRotation = transform.rotation;
 
             if (Camera.main != null)
             {
@@ -109,12 +117,58 @@ namespace Player
 
             SendMessage("UpdateXMin", -90);
             // rotate self in mid air
+
+           
             if (Atacking)
             {
                 transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
             }
-            else
+            else if (RapidFiring)
             {
+                if (turnBackward)
+                {
+                    float YAngle;
+
+                    if (OldRotation.eulerAngles.y > 270)
+                    {
+                        YAngle = OldRotation.eulerAngles.y - 360;
+                    }
+                    else
+                    {
+                        YAngle = OldRotation.eulerAngles.y;
+                    }
+                    // Debug.Log(YAngle);
+                    OldRotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, Mathf.Clamp((YAngle + 10f), YAngle, YAngle + 180), transform.rotation.eulerAngles.z);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, OldRotation, 10f * Time.deltaTime);
+                    //transform.rotation = Quaternion.Slerp(OldRotation, Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y - 180, transform.rotation.eulerAngles.z), 5);
+                }
+                else
+                {
+                    OldRotation = transform.rotation;
+                    transform.rotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y - 180, transform.rotation.eulerAngles.z);
+                }
+            }
+            else if (turnForward)
+            {
+                //Debug.Log("RotatingForward");
+                float YAngle;
+
+                if (OldRotation.eulerAngles.y < 90)
+                {
+                    YAngle = OldRotation.eulerAngles.y + 360;
+                }
+                else
+                {
+                    YAngle = OldRotation.eulerAngles.y;
+                }
+                // Debug.Log(YAngle);
+                OldRotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, Mathf.Clamp((YAngle + 10f), YAngle, YAngle + 180), transform.rotation.eulerAngles.z);
+                transform.rotation = Quaternion.Slerp(transform.rotation, OldRotation, 10f * Time.deltaTime);
+              //  transform.rotation = Quaternion.Slerp(OldRotation, Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y - 180, transform.rotation.eulerAngles.z), 5);
+            }
+            else if ((AllowMovement))
+            {
+                OldRotation = transform.rotation;
                 transform.rotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
             }
            // transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
@@ -161,115 +215,211 @@ namespace Player
 
         void AlignWithCamera()
         {
+
             //   transform.rotation = Quaternion.Lerp(Quaternion.Euler(0, m_Cam.transform.rotation.eulerAngles.y, 0), Quaternion.Euler(0, transform.rotation.y, 0), TurnTime * Time.deltaTime);
             if (Atacking)
             {
                 m_IsGrounded = false;
                 m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ; ;
                 transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
+                OldRotation = transform.rotation; 
             }
-            else if (moving)
+            else if (RapidFiring)
             {
-                transform.rotation = (Quaternion.Euler(0, m_Cam.transform.rotation.eulerAngles.y, 0));
-                ResetRotation();
+                if (turnBackward)
+                {
+                   // Debug.Log("TurnBackwards");
+                    //Debug.Log(m_Cam.eulerAngles.y);
+                    float YAngle;
+
+                    if (OldRotation.eulerAngles.y < 90)
+                    {
+                        YAngle = OldRotation.eulerAngles.y + 360;
+                    }
+                    else
+                    {
+                        YAngle = OldRotation.eulerAngles.y;
+                    }
+                   // Debug.Log(YAngle);
+                    OldRotation = Quaternion.Euler(0, Mathf.Clamp((YAngle + 10f), YAngle, YAngle + 180), 0);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, OldRotation, 10f * Time.deltaTime);
+                }
+                else
+                {
+                  //  Debug.Log("RapidFiring");
+                    transform.rotation =  Quaternion.Euler(0, m_Cam.transform.rotation.eulerAngles.y - 180, 0);
+                    OldRotation = transform.rotation;
+                }
+                
+            }
+            else if (turnForward)
+            {
+                float YAngle;
+
+                if (OldRotation.eulerAngles.y > 270)
+                {
+                    YAngle = OldRotation.eulerAngles.y - 360;
+                }
+                else
+                {
+                    YAngle = OldRotation.eulerAngles.y;
+                }
+               //  Debug.Log("TurnForward");
+                OldRotation = Quaternion.Euler(0, Mathf.Clamp((YAngle + 10f), YAngle, YAngle + 180), 0);
+                transform.rotation = Quaternion.Slerp(transform.rotation, OldRotation, 10f * Time.deltaTime);
             }
 
+            else if (moving && AllowMovement)
+            {
+                // Debug.Log("Moving");
+                m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+               // transform.rotation = (Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0));
+                transform.rotation = (Quaternion.Euler(0, m_Cam.transform.rotation.eulerAngles.y, 0));
+                OldRotation = transform.rotation;
+                //  ResetRotation();
+            }
+            else
+            {
+                //Debug.Log("Idle");
+                OldRotation = transform.rotation;
+            }
 
+            Debug.Log(OldRotation.eulerAngles.y);
+        }
 
-                //   transform.rotation = (Quaternion.Euler(transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z));
-                // transform.rotation = (Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z));
-            //  Debug.Log("Cube" + transform.rotation.y);
-            //  Debug.Log("Camera" + m_Cam.transform.rotation.y);
+        public void PlayerTurn(int turn)
+        {
+              if (turn == 1 && RapidFiring)
+              {
+               // Debug.Log("Turning");
+                turnBackward = true;
+                  turnForward = false;
+                AllowMovement = false;
+            }
+              else if (turn == 1 && !RapidFiring)
+              {
+                  turnForward = true;
+                  turnBackward = false;
+                AllowMovement = false;
+            }
+              else if(turn == 2 && RapidFiring)
+            {
+                AllowMovement = true; 
+            }
+              else if(turn == 2 && !RapidFiring)
+            {
+                turnBackward = false;
+                turnForward = false;
+                AllowMovement = true;
+            }
+              else
+              {
+                //  Debug.Log("StopTurning");
+                  AllowMovement = false;
+                    turnBackward = false;
+                  turnForward = false;
+              }
         }
 
 
         void UpdateAnimator(Vector3 move, bool QuickMove, bool LeftMove, bool RightMove, bool SpecialMove, bool ActiveGauntlets, bool ActiveSword, bool WeaponSwitch)
         {
-            if (move == Vector3.zero)
+
+            //
+            // animation bools!
+            //
+            if (SpecialMove && ActiveGauntlets)
             {
-                m_Animator.SetBool("Moving", false);
-                m_Animator.SetBool(("RapidFire"), false);
+                RapidFiring = true;
+                m_Animator.SetBool(("RapidFire"), true);
             }
-            else
+
+            else if (move != Vector3.zero)
             {
-                moving = true; 
+                m_Animator.SetBool(("RapidFire"), false);
+                RapidFiring = false;
+                moving = true;
                 m_Animator.SetBool("Moving", true);
                 float RunSpeed = 1.35f;
                 float SlowDownSpeed = 0.8f;
-                
+
                 if (move.magnitude == 1)
                 {
                     m_Animator.speed = RunSpeed;
-                } else
+                }
+                else
                 {
                     m_Animator.speed = SlowDownSpeed;
                 }
             }
+
+            else 
+               {
+                    m_Animator.SetBool("Moving", false);
+                    m_Animator.SetBool(("RapidFire"), false);
+                    RapidFiring = false;
+            }
+
+            //
+            // animation Triggers!
+            //
+
             if (ActiveGauntlets)
             {
-               Debug.Log("ActiveGauntlets");
                 if (WeaponSwitch)
                 {
-                    m_Animator.SetBool(("RapidFire"), false);
                     m_Animator.SetTrigger("GauntletsOutTrig");
                 }
                 else if (QuickMove)
                 {
-                    m_Animator.SetBool(("RapidFire"), false);
                     m_Animator.SetTrigger("UpLaunch");
 
                 }
                 else if (LeftMove)
                 {
-                    m_Animator.SetBool(("RapidFire"), false);
                     m_Animator.SetTrigger("LeftLaunch");
 
                 }
                 else if (RightMove)
                 {
-                    m_Animator.SetBool(("RapidFire"), false);
+                
                     m_Animator.SetTrigger("RightLaunch");
                 }
-                else if (SpecialMove)
-                {
-                    m_Animator.SetBool(("RapidFire"), true);
+               
                 }
-                else
+
+                if (ActiveSword)
                 {
-                    m_Animator.SetBool(("RapidFire"), false);
+                    //  Debug.Log("ActiveSword");
+                    if (WeaponSwitch)
+                    {
+                        m_Animator.SetTrigger("SwordOutTrig");
+                    }
+                    else if (QuickMove)
+                    {
+                        m_Animator.SetTrigger(("QuickAttack"));
+                    }
+                    else if (SpecialMove)
+                    {
+                        m_Animator.SetTrigger("StrongAttack");
+                    }
+                    else if (RightMove)
+                    {
+                        m_Animator.SetTrigger("SideStepRight");
+                    }
+                    else if (LeftMove)
+                    {
+                        m_Animator.SetTrigger("SideStepLeft");
+                    }
+                  
+
+                    
                 }
             }
-
-            if (ActiveSword)
-            {
-                Debug.Log("ActiveSword");
-                if (WeaponSwitch)
-                {
-                    m_Animator.SetTrigger("SwordOutTrig");
-                }
-                else if (QuickMove)
-                {
-                    m_Animator.SetTrigger(("QuickAttack"));
-                }
-                else if (SpecialMove)
-                {
-                    m_Animator.SetTrigger("StrongAttack");
-                }
-                else if (RightMove)
-                {
-                    m_Animator.SetTrigger("SideStepRight");
-                }
-                else if (LeftMove)
-                {
-                    m_Animator.SetTrigger("SideStepLeft");
-                }
-                
-            }
-        }
+        
 
 
-
-        void CheckGroundStatus()
+       private void CheckGroundStatus()
         {
 
                 RaycastHit hitInfo;
@@ -290,11 +440,12 @@ namespace Player
                 else
                 {
                     m_IsGrounded = false;
-                    m_GroundNormal = Vector3.up;
+
+                m_GroundNormal = Vector3.up;
                 }
-
-
         }
+
+        
 
 
     }
