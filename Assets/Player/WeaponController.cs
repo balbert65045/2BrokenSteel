@@ -5,6 +5,7 @@ using UnityEngine;
 public class WeaponController : MonoBehaviour {
 
     bool CuncussionGauntlets = true; 
+   
 	// Use this for initialization
 	void Start () {
 		
@@ -63,6 +64,22 @@ public class WeaponController : MonoBehaviour {
         BroadcastMessage("StopAttacking");
     }
 
+    public void SlowMo(int on)
+    {
+        if (on == 1)
+        {
+            Time.timeScale = .15f;
+            //Time.timeScale = 1f;
+            Time.fixedDeltaTime = 0.02F * Time.timeScale;
+           // Debug.Log("SlowMo On!");
+        }
+        else
+        {
+            Time.timeScale = 1f;
+            Time.fixedDeltaTime = 0.02F * Time.timeScale;
+           // Debug.Log("SlowMo off!");
+        }
+    }
   
 
 }

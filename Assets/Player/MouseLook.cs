@@ -33,6 +33,10 @@ namespace Player
         private Quaternion CameraAngles;
         private Vector3 CharPos;
 
+        private bool LockedtoEnemy = false;
+        private Transform m_Enemy;
+        private Vector3 EnemyPos; 
+
         public void Init(Transform character, Transform camera)
         {
             m_CharacterTargetRot = character.localRotation;
@@ -48,21 +52,35 @@ namespace Player
 
         public void LookRotation(Transform character, Transform camera)
         {
-            float yRot = CrossPlatformInputManager.GetAxis("Mouse X") * XSensitivity;
-            float xRot = CrossPlatformInputManager.GetAxis("Mouse Y") * YSensitivity;
-            //Debug.Log(yRot);
-          //  m_CharacterTargetRot *= Quaternion.Euler (0f, yRot, 0f);
-            //m_CameraTargetRot *= Quaternion.Euler (-xRot, 0f, 0f);
-            m_CameraTargetRot *= Quaternion.Euler(-xRot, yRot, 0);
+            float yRot;
+            float xRot;
+            if (!LockedtoEnemy)
+            {
+                 yRot = CrossPlatformInputManager.GetAxis("Mouse X") * XSensitivity;
+                 xRot = CrossPlatformInputManager.GetAxis("Mouse Y") * YSensitivity;
+                m_CameraTargetRot *= Quaternion.Euler(-xRot, yRot, 0);
+
+            }
+            else
+            {
+                 EnemyPos = m_Enemy.transform.position;
+                 CharPos = character.transform.position;
+                //Debug.Log("Enemy tranform " + EnemyPos);
+              //  Debug.Log("Char transform " + CharPos);
+
+                yRot = CalculateDegree((CharPos.x - EnemyPos.x), (CharPos.z - EnemyPos.z), true);
+                float R = Mathf.Sqrt(Mathf.Pow((CharPos.x - EnemyPos.x), 2) + (Mathf.Pow((CharPos.z - EnemyPos.z), 2)));
+                xRot =CalculateDegree(R, (CharPos.y - EnemyPos.y), false);
+                m_CameraTargetRot = Quaternion.Euler(xRot, yRot, 0);
+                //Debug.Log("Xrotation " + xRot + "Yrotation " + yRot);
+
+            }
+
+          
             CharPos = character.transform.position;
-
-            //float initR = Mathf.Sqrt(Mathf.Pow(zPos, 2) + Mathf.Pow(xPos, 2));
-
 
             if (smooth)
             {
-                // character.localRotation = Quaternion.Slerp (character.localRotation, m_CharacterTargetRot,
-                //    smoothTime * Time.deltaTime);
                 float xAngle;
                 if (m_CameraTargetRot.eulerAngles.x > 180)
                 {
@@ -74,30 +92,120 @@ namespace Player
                 }
 
                 CameraAngles = Quaternion.Euler(Mathf.Clamp(xAngle, MinimumX, MaximumX), m_CameraTargetRot.eulerAngles.y, 0);
-                
-                camera.rotation = Quaternion.Slerp (camera.localRotation, CameraAngles,
+
+                camera.rotation = Quaternion.Slerp(camera.localRotation, CameraAngles,
                    smoothTime * Time.deltaTime);
             }
             else
             {
-                float xAngle = m_CameraTargetRot.eulerAngles.x; 
-               // if (m_CameraTargetRot.eulerAngles.x > 180)
-               // {
-               //     xAngle = -(360 - m_CameraTargetRot.eulerAngles.x);
-               // }
-             //   else
-             //   {
-             //       xAngle = m_CameraTargetRot.eulerAngles.x;
-             //   }
-
-                //  float xAngle = Mathf.Clamp(m_CameraTargetRot.eulerAngles.x + 90, MinimumX + 90, MaximumX + 90) - 90f;
+                float xAngle = m_CameraTargetRot.eulerAngles.x;
                 CameraAngles = Quaternion.Euler(Mathf.Clamp(xAngle, MinimumX, MaximumX), m_CameraTargetRot.eulerAngles.y, 0);
                 camera.localRotation = CameraAngles;
 
             }
-
             CreateCameraPosition(camera);
             UpdateCursorLock();
+        }
+
+        private float CalculateDegree(float c, float a, bool Yrot)
+        {
+            int Quadrient = 0;
+            // Debug.Log("c " + c);
+            // Debug.Log("a " + a);
+            if (-c >= 0 && -a >= 0)
+            {
+                Quadrient = 1;
+            }
+            else if (-c >= 0 && -a < 0)
+            {
+                Quadrient = 2;
+            }
+            else if (-c < 0 && -a < 0)
+            {
+                Quadrient = 3;
+            }
+            else if (-c < 0 && -a >= 0)
+            {
+                Quadrient = 4;
+            }
+            c = Mathf.Abs(c);
+            a = Mathf.Abs(a);
+
+
+
+            float b = Mathf.Sqrt(Mathf.Pow(c, 2) + Mathf.Pow(a, 2));
+            float Numerator = Mathf.Pow(a, 2) + Mathf.Pow(b, 2) - Mathf.Pow(c, 2);
+            float Denominator = 2 * b * a;
+
+            float Degree = Mathf.Rad2Deg * (Mathf.Acos(Numerator / Denominator));
+
+            //Debug.Log("Angle " + Degree);
+            if (!Yrot)
+            {
+                Debug.Log("Quadrient " + Quadrient);
+            }
+            if (Yrot)
+            {
+                if (Quadrient == 1)
+                {
+                    return (Degree);
+                }
+                else if (Quadrient == 2)
+                {
+                    return (180 - Degree);
+                }
+                else if (Quadrient == 3)
+                {
+                    return (180 + Degree);
+                }
+                else if (Quadrient == 4)
+                {
+                    return (360 - Degree);
+                }
+                else
+                {
+                    Debug.LogError("Incorrect Quadrient found");
+                    return (0);
+                }
+            }
+            else
+            {
+                Debug.Log(Degree);
+                if (Quadrient == 1)
+                {
+                    return (90 - Degree);
+                }
+                else if (Quadrient == 2)
+                {
+                    return (90 - Degree);
+                }
+                else if (Quadrient == 3)
+                {
+                    return (90 - Degree);
+                }
+                else if (Quadrient == 4)
+                {
+                    return (90 - Degree);
+                }
+                else
+                {
+                    Debug.LogError("Incorrect Quadrient found");
+                    return (0);
+                }
+            }
+        }
+
+
+
+        public void LocktoEnemy(Transform Enemy)
+        {
+            m_Enemy = Enemy;
+            LockedtoEnemy = true; 
+        }
+
+        public void Unlock()
+        {
+            LockedtoEnemy = false;
         }
 
         public void SetCursorLock(bool value)
@@ -145,24 +253,27 @@ namespace Player
             float adjustmentFactorR = .1f;
             float SecondAsjust = .1f;
             float adjustmentFactorY = .17f;
-            if (CameraAngles.eulerAngles.x > 180)
-            {
-               // Debug.Log(CameraAngles.eulerAngles.x);
-                r = Mathf.Clamp(((CameraAngles.eulerAngles.x) - 380) * (adjustmentFactorR) + initR, 1f, 20f);
-                yPos = Mathf.Clamp(((CameraAngles.eulerAngles.x) - 380) * (adjustmentFactorY) + initYpos, -3, 20);
-
-            }
-            else if (CameraAngles.eulerAngles.x <= 20)
-            {
-                r = ( (CameraAngles.eulerAngles.x) - 20) * adjustmentFactorR + initR;
-                yPos = ((CameraAngles.eulerAngles.x - 20)) * adjustmentFactorY + initYpos; ;
-            }
-            else
-            {
-                r = (20 - CameraAngles.eulerAngles.x) * adjustmentFactorR + initR;
-                yPos = initYpos;
-            }
             
+                if (CameraAngles.eulerAngles.x > 180)
+                {
+                   // Debug.Log(CameraAngles.eulerAngles.x);
+                    r = Mathf.Clamp(((CameraAngles.eulerAngles.x) - 380) * (adjustmentFactorR) + initR, 1f, 20f);
+                    yPos = Mathf.Clamp(((CameraAngles.eulerAngles.x) - 380) * (adjustmentFactorY) + initYpos, -3, 20);
+
+                }
+                else if (CameraAngles.eulerAngles.x <= 20)
+                {
+                    r = ( (CameraAngles.eulerAngles.x) - 20) * adjustmentFactorR + initR;
+                    yPos = ((CameraAngles.eulerAngles.x - 20)) * adjustmentFactorY + initYpos; ;
+                }
+                else
+                {
+                    r = (20 - CameraAngles.eulerAngles.x) * adjustmentFactorR + initR;
+                    yPos = initYpos;
+                }
+            
+            
+
             //pythagrion theorm
 
             xPos = r * Mathf.Sin(Mathf.Deg2Rad * -m_CameraTargetRot.eulerAngles.y);

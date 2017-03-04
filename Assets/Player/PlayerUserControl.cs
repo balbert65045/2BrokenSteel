@@ -10,6 +10,7 @@ namespace Player
     {
         private PlayerController m_Player;
         private Transform m_Cam;                  // A reference to the main camera in the scenes transform
+        private EnemyLockCollider m_EnemyLockCollider; 
         public Vector3 m_CamForward;             // The current forward direction of the camera
         public Vector3 m_Move;
 
@@ -22,6 +23,9 @@ namespace Player
         private bool m_LeftMove = false;
         private bool m_RightMove = false;
         private bool m_SpecialMove = false;
+
+        private bool Locked = false;
+        private int NumE = 0; 
 
         public Vector3 TestVector;
 
@@ -44,6 +48,7 @@ namespace Player
                 // we use self-relative controls in this case, which probably isn't what the user wants, but hey, we warned them!
             }
 
+            m_EnemyLockCollider = FindObjectOfType<EnemyLockCollider>(); 
             m_Player = GetComponent<PlayerController>();
             m_MouseLook.Init(transform, m_Cam);
         }
@@ -57,18 +62,39 @@ namespace Player
             }
             if (CrossPlatformInputManager.GetButtonDown("ShiftWeapon"))
             {
-                SlowMoController(Time.realtimeSinceStartup);
+            //    SlowMoController(Time.realtimeSinceStartup);
                 CheckWeaponChange();
             }
 
-            WeaponInput();
-            
-            if (Time.realtimeSinceStartup > SlowMoTimeStart + 1)
+            if (CrossPlatformInputManager.GetButtonDown("LockEnemy") && !Locked)
             {
-                Time.timeScale = 1f;
-                Time.fixedDeltaTime = 0.02F * Time.timeScale;
+                if (m_EnemyLockCollider.LocalEnemies.Count > 0)
+                {
+                    NumE = 0; 
+                   // Debug.Log("Locked On Enemy");
+                    Locked = true;
+                    m_MouseLook.LocktoEnemy(m_EnemyLockCollider.LocalEnemies[NumE].transform);
+                }
+            }
+            else if ((CrossPlatformInputManager.GetButtonDown("LockEnemy") && Locked))
+            {
+                NumE++;
+              //  Debug.Log("Enemy Locked to" + NumE);
+              //  Debug.Log("Number of Enemies to lock to" + m_EnemyLockCollider.LocalEnemies.Count);
+                if (NumE < m_EnemyLockCollider.LocalEnemies.Count)
+                {
+                //    Debug.Log("Switch Lock to new Enemy");
+                    m_MouseLook.LocktoEnemy(m_EnemyLockCollider.LocalEnemies[NumE].transform);
+                }
+                else
+                {
+                    Locked = false;
+                 //   Debug.Log("Unlocked");
+                    m_MouseLook.Unlock(); 
+                }
             }
 
+            WeaponInput();
             RotateView();
         }
 
@@ -96,7 +122,10 @@ namespace Player
             m_QuickMove = false;
             m_LeftMove = false;
             m_RightMove = false;
-            m_SpecialMove = false;
+            if (ActiveSword)
+            {
+                m_SpecialMove = false;
+            }
             WeaponSwitch = false;
             m_MouseLook.UpdateCursorLock();
 
@@ -148,10 +177,7 @@ namespace Player
             }
             if (ActiveGauntlets)
             {
-                if (!m_SpecialMove)
-                {
                     m_SpecialMove = CrossPlatformInputManager.GetButton("SpecialMove");
-                }
             }
             else if (ActiveSword)
             {
