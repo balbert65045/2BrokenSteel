@@ -6,6 +6,7 @@ public class EnemyLockCollider : MonoBehaviour {
 
     // Use this for initialization
     public GameObject Player;
+    public GameObject m_Camera; 
     public List<GameObject> LocalEnemies;
 	void Start () {
         LocalEnemies = new List<GameObject>();
@@ -14,7 +15,8 @@ public class EnemyLockCollider : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
         transform.position = Player.transform.position;
-        transform.rotation = Quaternion.Euler(0, Player.transform.rotation.eulerAngles.y, 0);
+
+        transform.rotation = Quaternion.Euler(0, m_Camera.transform.rotation.eulerAngles.y, 0);
 
 	}
 

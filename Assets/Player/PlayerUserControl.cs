@@ -28,6 +28,7 @@ namespace Player
         private int NumE = 0; 
 
         public Vector3 TestVector;
+        private TargetArrow TargetArrow;
 
         private float SlowMoTimeStart;
 
@@ -48,6 +49,8 @@ namespace Player
                 // we use self-relative controls in this case, which probably isn't what the user wants, but hey, we warned them!
             }
 
+            TargetArrow = FindObjectOfType<TargetArrow>();
+            TargetArrow.gameObject.SetActive(false);
             m_EnemyLockCollider = FindObjectOfType<EnemyLockCollider>(); 
             m_Player = GetComponent<PlayerController>();
             m_MouseLook.Init(transform, m_Cam);
@@ -73,23 +76,30 @@ namespace Player
                     NumE = 0; 
                    // Debug.Log("Locked On Enemy");
                     Locked = true;
+                    Debug.Log(m_EnemyLockCollider.LocalEnemies[NumE].name);
                     m_MouseLook.LocktoEnemy(m_EnemyLockCollider.LocalEnemies[NumE].transform);
+                    TargetArrow.gameObject.SetActive(true);
+                    TargetArrow.Targeted(m_EnemyLockCollider.LocalEnemies[NumE].gameObject);
                 }
             }
             else if ((CrossPlatformInputManager.GetButtonDown("LockEnemy") && Locked))
-            {
+            { 
                 NumE++;
-              //  Debug.Log("Enemy Locked to" + NumE);
+
               //  Debug.Log("Number of Enemies to lock to" + m_EnemyLockCollider.LocalEnemies.Count);
                 if (NumE < m_EnemyLockCollider.LocalEnemies.Count)
                 {
                 //    Debug.Log("Switch Lock to new Enemy");
                     m_MouseLook.LocktoEnemy(m_EnemyLockCollider.LocalEnemies[NumE].transform);
+                    TargetArrow.gameObject.SetActive(true);
+                    TargetArrow.Targeted(m_EnemyLockCollider.LocalEnemies[NumE].gameObject);
                 }
                 else
                 {
+                    TargetArrow.gameObject.SetActive(false);
+                    //TargetArrow.Targeted(null);
                     Locked = false;
-                 //   Debug.Log("Unlocked");
+                    Debug.Log("Unlocked");
                     m_MouseLook.Unlock(); 
                 }
             }
@@ -110,6 +120,11 @@ namespace Player
 
                 m_CamForward = Vector3.Scale(transform.position - m_Cam.transform.position, new Vector3(1, 0, 1)).normalized;
                 m_Move = v * m_CamForward + h * m_Cam.right;
+
+               // Debug.Log(m_Cam.right);
+
+                //m_Move = new Vector3(h, 0, v);
+
             }
             else
             {

@@ -1,37 +1,55 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI; 
 using UnityEngine;
 
 public class WeaponController : MonoBehaviour {
 
-    bool CuncussionGauntlets = true; 
-   
+    bool CuncussionGauntlets = true;
+
+    [SerializeField]
+    public float LaunchUpManaCost =25;
+    public float LaunchSideManaCost = 15;
+    public float RapidFireManaCost = 10;
+    public float AirManaRechargeRate = 1;
+
+    public Slider HealthSlider;
+    public Slider AirManaSlider; 
 	// Use this for initialization
 	void Start () {
 		
 	}
-	
-	// Update is called once per frame
+
+    // Update is called once per frame
+    private void Update()
+    {
+        AirManaSlider.value += Time.deltaTime * AirManaRechargeRate;
+    }
 
     public void Launch(int type)
     {
-        if (type == 0)
+        if (type == 0 && AirManaSlider.value > LaunchUpManaCost)
         {
             BroadcastMessage("LaunchUp");
-        } else if (type == 1)
+            AirManaSlider.value -= LaunchUpManaCost;
+        } else if (type == 1 && AirManaSlider.value > LaunchSideManaCost)
         {
             BroadcastMessage("LaunchLeft");
-        } else if (type == 2)
+            AirManaSlider.value -= LaunchSideManaCost;
+        } else if (type == 2 && AirManaSlider.value > LaunchSideManaCost)
         {
             BroadcastMessage("LaunchRight");
+            AirManaSlider.value -= LaunchSideManaCost;
         }
-        else if (type == 3)
+        else if (type == 3 && AirManaSlider.value > RapidFireManaCost)
         {
             BroadcastMessage("RapidFireRight");
+            AirManaSlider.value -= RapidFireManaCost;
         }
-        else if(type == 4)
+        else if(type == 4 && AirManaSlider.value > RapidFireManaCost)
         {
             BroadcastMessage("RapidFireLeft");
+            AirManaSlider.value -= RapidFireManaCost;
         }
         else
         {
@@ -69,7 +87,7 @@ public class WeaponController : MonoBehaviour {
         if (on == 1)
         {
             Time.timeScale = .15f;
-            //Time.timeScale = 1f;
+          //  Time.timeScale = 1f;
             Time.fixedDeltaTime = 0.02F * Time.timeScale;
            // Debug.Log("SlowMo On!");
         }

@@ -42,7 +42,7 @@ namespace Player
             PlayerRigidBody.AddRelativeTorque(0, 0, m_RelativeTourquePower);
            PlayerController.m_IsGrounded = false;
             PlayerController.m_GroundCheckDistance = 0.1f;
-            Debug.Log("Launching");
+           // Debug.Log("Launching");
             BroadcastMessage("BlastLaunchLeft");
         }
 

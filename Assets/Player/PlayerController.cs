@@ -21,12 +21,14 @@ namespace Player
         float m_GravityMultiplier = 2f;
         [SerializeField]
         float m_MoveSpeedMultiplier = 1f;
+        [SerializeField]
+        float m_MaxSpeed = 20f; 
 
         public float m_GroundCheckDistance = 0.1f;
         public bool m_IsGrounded;
         public float TurnTime = 5;
 
-        [SerializeField]
+      //  [SerializeField]
         float FrictionGround = .2f;
 
         Rigidbody m_Rigidbody;
@@ -41,9 +43,9 @@ namespace Player
         private Transform m_Cam;
 
         public bool RapidFiring = false;
-        private bool turnBackward = false;
-        private bool turnForward = false;
-        public bool Backwards = false; 
+        public bool turnBackward = false;
+        public bool turnForward = false;
+        public bool Backwards = false;
         public bool AllowMovement = true;
 
         private Quaternion OldRotation;
@@ -117,6 +119,8 @@ namespace Player
             Vector3 extraGravityForce = (Physics.gravity * m_GravityMultiplier) - Physics.gravity;
             m_Rigidbody.AddForce(extraGravityForce);
 
+                 m_Rigidbody.velocity = new Vector3(Mathf.Clamp(m_Rigidbody.velocity.x, -m_MaxSpeed, m_MaxSpeed), m_Rigidbody.velocity.y, Mathf.Clamp(m_Rigidbody.velocity.z, -m_MaxSpeed, m_MaxSpeed));
+
             HandleAirborneRotation(move);
             m_GroundCheckDistance = m_Rigidbody.velocity.y < 0 ? m_OrigGroundCheckDistance : 0.01f;
         }
@@ -130,14 +134,7 @@ namespace Player
             SendMessage("UpdateXMin", -90);
             // rotate self in mid air
 
-           
-            if (Atacking)
-            {
-              //  Debug.Log(m_Rigidbody.constraints);
-                transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
-            }
-
-            else if (turnBackward)
+            if (turnBackward)
             {
                 BackwardsAngle = CalculateDesiredAngle(m_Cam.transform.rotation.eulerAngles.y, true);
                 CurrentAngle = CalculateCurrentAngle(transform.rotation.eulerAngles.y, CurrentAngle);
@@ -170,6 +167,13 @@ namespace Player
                     transform.rotation = Quaternion.Slerp(transform.rotation, OldRotation, 20f * Time.deltaTime);
                 }
             }
+
+           else if (Atacking)
+            {
+                //  Debug.Log(m_Rigidbody.constraints);
+                transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
+            }
+
             else if ((AllowMovement))
             {
              //   m_Rigidbody.constraints = RigidbodyConstraints.None;
@@ -211,13 +215,30 @@ namespace Player
             }
             else
             {
-              
+
                 //Rigidbody input movement
-                m_Rigidbody.AddForce((move * m_MoveSpeedMultiplier * 3) , ForceMode.Force);
+                //transform.Translate(move);
+                m_Rigidbody.AddForce((move * m_MoveSpeedMultiplier) , ForceMode.Force);
+                //Counteractive Force 
+                if (RapidFiring)
+                {
+                   m_Rigidbody.AddForce((-m_Rigidbody.velocity * .5f), ForceMode.Force);
+                }
+                else
+                {
+                    m_Rigidbody.AddForce((-m_Rigidbody.velocity * 1f), ForceMode.Force);
+                }
+
                 //Land Friction
-                m_Rigidbody.AddForce(new Vector3(-m_Rigidbody.velocity.x * FrictionGround, 0, -m_Rigidbody.velocity.z * FrictionGround));
+                //m_Rigidbody.AddForce(new Vector3(-m_Rigidbody.velocity.x * FrictionGround, 0, -m_Rigidbody.velocity.z * FrictionGround));
                 //m_Rigidbody.AddForce(-move * FrictionGround * 3);
-                m_Rigidbody.velocity = new Vector3 (Mathf.Clamp(m_Rigidbody.velocity.x, -20, 20), 0, Mathf.Clamp(m_Rigidbody.velocity.z, -20, 20));
+
+
+                
+
+                m_Rigidbody.velocity = new Vector3 (Mathf.Clamp(m_Rigidbody.velocity.x, -m_MaxSpeed, m_MaxSpeed), 0, Mathf.Clamp(m_Rigidbody.velocity.z, -m_MaxSpeed, m_MaxSpeed));
+                //
+              //  Debug.Log(m_Rigidbody.velocity);
             }
         }
 

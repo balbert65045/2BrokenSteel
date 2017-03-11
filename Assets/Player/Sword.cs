@@ -13,7 +13,9 @@ namespace Player
         public float QuickAttackTourque = 100f; 
         public float StrongAttackForce = 200f;
         public float StrongAttackTorque = 100f;
-        public float SideStepForce = 100f;
+        public float SideStepForceX = 100f;
+        public float SideStepForceZ = 100f;
+        public float SideStepForceY = 100f; 
         public float SideStepTorque = 100f;
 
         private BoxCollider SwordBox;
@@ -38,11 +40,17 @@ namespace Player
 
         public void StrongAttack()
         {
-            if (!PlayerController.m_IsGrounded)
+         //   if (!PlayerController.m_IsGrounded)
+        //    {
+         //       PlayerController.Atacking = true; 
+       //         PlayerRigidBody.AddRelativeForce(0, -StrongAttackForce, 0);
+          //      PlayerRigidBody.AddRelativeTorque(StrongAttackTorque, 0, 0);
+        //    }
+         //   else
             {
-                PlayerController.Atacking = true; 
-                PlayerRigidBody.AddRelativeForce(0, -StrongAttackForce, 0);
-                PlayerRigidBody.AddRelativeTorque(StrongAttackTorque, 0, 0);
+                //  Debug.Log("Attacked on ground");
+                PlayerController.Atacking = true;
+                PlayerRigidBody.AddRelativeForce(0, StrongAttackForce * .3f, StrongAttackForce * .8f);
             }
             SwordBox.enabled = true;
             //Debug.Log("StrongAttack!!!");
@@ -53,9 +61,10 @@ namespace Player
             //PlayerRigidBody.AddRelativeTorque(0, SideStepTorque, 0);
             //Possibly change this to a spinning attack but must adjust mouse look snap
             PlayerController.Atacking = true;
-            PlayerRigidBody.AddRelativeForce(-10* SideStepForce, 700, 5*SideStepForce);
-            PlayerRigidBody.AddRelativeTorque(0, StrongAttackTorque, 0);
-            SwordBox.enabled = true;
+            PlayerRigidBody.constraints = RigidbodyConstraints.None;
+            PlayerRigidBody.AddRelativeForce(-SideStepForceX, SideStepForceY, SideStepForceZ);
+            PlayerRigidBody.AddRelativeTorque(0, 0, SideStepTorque);
+            //SwordBox.enabled = true;
             //      Debug.Log("SideStepedRight!");
         }
 
@@ -63,9 +72,10 @@ namespace Player
         {
             //Possibly change this to a spinning attack but must adjust mouse look snap
             PlayerController.Atacking = true;
-            PlayerRigidBody.AddRelativeForce(10 * SideStepForce, 700, 5 * SideStepForce);
-            PlayerRigidBody.AddRelativeTorque(0, -StrongAttackTorque, 0);
-            SwordBox.enabled = true;
+            PlayerRigidBody.constraints = RigidbodyConstraints.None;
+            PlayerRigidBody.AddRelativeForce(SideStepForceX, SideStepForceY, SideStepForceZ);
+            PlayerRigidBody.AddRelativeTorque(0, 0, -SideStepTorque);
+           // SwordBox.enabled = true;
         }
 
         public void StopAttacking()
@@ -85,7 +95,7 @@ namespace Player
                 float InitialLaunchForce = 100;
                 Debug.Log(PlayerRigidBody.velocity);
                 //Debug.Log("LaunchVector: " + LaunchVector);
-                collision.gameObject.GetComponent<Rigidbody>().AddForce(LaunchVector * (InitialLaunchForce + PlayerRigidBody.velocity.magnitude));
+                collision.gameObject.GetComponent<Rigidbody>().AddForce(LaunchVector * (InitialLaunchForce + PlayerRigidBody.velocity.magnitude), ForceMode.Impulse);
             }
         }
     }

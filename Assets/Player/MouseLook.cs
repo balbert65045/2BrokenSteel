@@ -140,10 +140,7 @@ namespace Player
             float Degree = Mathf.Rad2Deg * (Mathf.Acos(Numerator / Denominator));
 
             //Debug.Log("Angle " + Degree);
-            if (!Yrot)
-            {
-                Debug.Log("Quadrient " + Quadrient);
-            }
+
             if (Yrot)
             {
                 if (Quadrient == 1)
@@ -170,7 +167,7 @@ namespace Player
             }
             else
             {
-                Debug.Log(Degree);
+              //  Debug.Log(Degree);
                 if (Quadrient == 1)
                 {
                     return (90 - Degree);
