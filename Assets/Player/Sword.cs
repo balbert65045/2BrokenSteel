@@ -10,12 +10,12 @@ namespace Player
         PlayerController PlayerController;
         Rigidbody PlayerRigidBody;
         public float QuickAttackForce = 100f;
-        public float QuickAttackTourque = 100f; 
+        public float QuickAttackTourque = 100f;
         public float StrongAttackForce = 200f;
         public float StrongAttackTorque = 100f;
         public float SideStepForceX = 100f;
         public float SideStepForceZ = 100f;
-        public float SideStepForceY = 100f; 
+        public float SideStepForceY = 100f;
         public float SideStepTorque = 100f;
 
         private BoxCollider SwordBox;
@@ -40,13 +40,13 @@ namespace Player
 
         public void StrongAttack()
         {
-         //   if (!PlayerController.m_IsGrounded)
-        //    {
-         //       PlayerController.Atacking = true; 
-       //         PlayerRigidBody.AddRelativeForce(0, -StrongAttackForce, 0);
-          //      PlayerRigidBody.AddRelativeTorque(StrongAttackTorque, 0, 0);
-        //    }
-         //   else
+            //   if (!PlayerController.m_IsGrounded)
+            //    {
+            //       PlayerController.Atacking = true; 
+            //         PlayerRigidBody.AddRelativeForce(0, -StrongAttackForce, 0);
+            //      PlayerRigidBody.AddRelativeTorque(StrongAttackTorque, 0, 0);
+            //    }
+            //   else
             {
                 //  Debug.Log("Attacked on ground");
                 PlayerController.Atacking = true;
@@ -56,7 +56,7 @@ namespace Player
             //Debug.Log("StrongAttack!!!");
         }
 
-       public void SideStepRight()
+        public void SideStepRight()
         {
             //PlayerRigidBody.AddRelativeTorque(0, SideStepTorque, 0);
             //Possibly change this to a spinning attack but must adjust mouse look snap
@@ -75,7 +75,7 @@ namespace Player
             PlayerRigidBody.constraints = RigidbodyConstraints.None;
             PlayerRigidBody.AddRelativeForce(SideStepForceX, SideStepForceY, SideStepForceZ);
             PlayerRigidBody.AddRelativeTorque(0, 0, -SideStepTorque);
-           // SwordBox.enabled = true;
+            // SwordBox.enabled = true;
         }
 
         public void StopAttacking()
@@ -87,15 +87,31 @@ namespace Player
         private void OnCollisionEnter(Collision collision)
         {
             //Debug.Log("Entered Collision");
+            if (collision.gameObject.GetComponent<Enemy_AI_Control>())
+            {
+                collision.gameObject.GetComponent<Enemy_AI_Control>().DisablePath();
+            }
+
             if (collision.gameObject.GetComponent<LaunchObject>())
             {
                 //Debug.Log("Launch Object Found");
                 Vector3 objLoc = collision.gameObject.transform.position;
-                Vector3 LaunchVector = new Vector3(objLoc.x - PlayerController.transform.position.x, 0, objLoc.z - PlayerController.transform.position.z).normalized;
+                Vector3 LaunchVector = new Vector3(objLoc.x - PlayerController.transform.position.x, 1, objLoc.z - PlayerController.transform.position.z).normalized;
+
                 float InitialLaunchForce = 100;
-                Debug.Log(PlayerRigidBody.velocity);
+               // Debug.Log(LaunchVector);
                 //Debug.Log("LaunchVector: " + LaunchVector);
                 collision.gameObject.GetComponent<Rigidbody>().AddForce(LaunchVector * (InitialLaunchForce + PlayerRigidBody.velocity.magnitude), ForceMode.Impulse);
+            }
+
+
+        }
+
+        private void OnCollisionExit(Collision collision)
+        {
+            if (collision.gameObject.GetComponent<Enemy>())
+            {
+                collision.gameObject.GetComponent<Enemy>().Readjust();
             }
         }
     }

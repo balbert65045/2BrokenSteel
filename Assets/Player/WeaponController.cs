@@ -53,7 +53,7 @@ public class WeaponController : MonoBehaviour {
         }
         else
         {
-            Debug.LogWarning("Type used in animation cuncussion animation out of range, Use 0-2");
+            Debug.Log("Out of Mana");
         }
     }
 

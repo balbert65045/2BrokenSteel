@@ -35,6 +35,8 @@ namespace Player
         [SerializeField]
         private MouseLook m_MouseLook;
 
+        private GameObject LockedEnemy; 
+
         private void Start()
         {
             // get the transform of the main camera
@@ -76,7 +78,8 @@ namespace Player
                     NumE = 0; 
                    // Debug.Log("Locked On Enemy");
                     Locked = true;
-                    Debug.Log(m_EnemyLockCollider.LocalEnemies[NumE].name);
+                    // Debug.Log(m_EnemyLockCollider.LocalEnemies[NumE].name);
+                    LockedEnemy = m_EnemyLockCollider.LocalEnemies[NumE];
                     m_MouseLook.LocktoEnemy(m_EnemyLockCollider.LocalEnemies[NumE].transform);
                     TargetArrow.gameObject.SetActive(true);
                     TargetArrow.Targeted(m_EnemyLockCollider.LocalEnemies[NumE].gameObject);
@@ -89,13 +92,15 @@ namespace Player
               //  Debug.Log("Number of Enemies to lock to" + m_EnemyLockCollider.LocalEnemies.Count);
                 if (NumE < m_EnemyLockCollider.LocalEnemies.Count)
                 {
-                //    Debug.Log("Switch Lock to new Enemy");
+                    //    Debug.Log("Switch Lock to new Enemy");
+                    LockedEnemy = m_EnemyLockCollider.LocalEnemies[NumE];
                     m_MouseLook.LocktoEnemy(m_EnemyLockCollider.LocalEnemies[NumE].transform);
                     TargetArrow.gameObject.SetActive(true);
                     TargetArrow.Targeted(m_EnemyLockCollider.LocalEnemies[NumE].gameObject);
                 }
                 else
                 {
+                     LockedEnemy = null;
                     TargetArrow.gameObject.SetActive(false);
                     //TargetArrow.Targeted(null);
                     Locked = false;
@@ -210,5 +215,18 @@ namespace Player
             m_MouseLook.MinimumX = value;
         }
 
+        public void LostLock(GameObject EnemyLeft)
+        {
+            if (EnemyLeft == LockedEnemy)
+            {
+                Debug.Log("EnemyLost");
+                LockedEnemy = null;
+                TargetArrow.gameObject.SetActive(false);
+                //TargetArrow.Targeted(null);
+                Locked = false;
+                Debug.Log("Unlocked");
+                m_MouseLook.Unlock();
+            }
+        }
     }
 }
