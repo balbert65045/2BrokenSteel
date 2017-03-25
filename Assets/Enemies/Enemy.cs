@@ -1,6 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityStandardAssets.CrossPlatformInput;
+
+
 
 
     [RequireComponent(typeof(Rigidbody))]
@@ -24,6 +27,10 @@ using UnityEngine;
         [SerializeField]
         float m_GroundCheckDistance = 0.1f;
 
+        [SerializeField]
+        private EnemyRotation EnemyRotation;
+
+
         Rigidbody m_Rigidbody;
         bool m_IsGrounded;
         float m_OrigGroundCheckDistance;
@@ -31,9 +38,9 @@ using UnityEngine;
         float m_ForwardAmount;
         Vector3 m_GroundNormal;
 
-    public bool hit;
+        public bool hit;
 
-    private Enemy_AI_Control Enemy_AI_Control;
+        private Enemy_AI_Control Enemy_AI_Control;
 
 
 
@@ -45,23 +52,40 @@ using UnityEngine;
 
             m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
             m_OrigGroundCheckDistance = m_GroundCheckDistance;
+
+
+
         }
 
-    private void Update()
-    {
-        Debug.Log(m_Rigidbody.velocity.magnitude);
-        if (hit && m_Rigidbody.velocity.magnitude < 4f)
+        private void Update()
         {
-            hit = false;
-            Enemy_AI_Control.MoveAgain();
+            Debug.Log(m_Rigidbody.velocity.magnitude);
+            if (hit && m_Rigidbody.velocity.magnitude < 4f)
+            {
+                hit = false;
+                Enemy_AI_Control.MoveAgain();
+            }
         }
+
+        public void Readjust()
+        {
+            hit = true;
+        }
+
+
+        public void Move(Transform player)
+        {
+          //  Debug.Log("Moving");
+            transform.rotation = EnemyRotation.Rotate(player, transform);
+        }
+
+
+
+
     }
 
-    public void Readjust()
-    {
-        hit = true; 
-    }
 
-    }
+
+
 
 
