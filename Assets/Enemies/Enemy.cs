@@ -59,7 +59,7 @@ using UnityStandardAssets.CrossPlatformInput;
 
         private void Update()
         {
-            Debug.Log(m_Rigidbody.velocity.magnitude);
+           // Debug.Log(m_Rigidbody.velocity.magnitude);
             if (hit && m_Rigidbody.velocity.magnitude < 4f)
             {
                 hit = false;
