@@ -13,4 +13,10 @@ public class Player1 : MonoBehaviour {
 	void Update () {
 		
 	}
+
+
+    public void PlayerHit()
+    {
+        SendMessage("Hit");
+    }
 }

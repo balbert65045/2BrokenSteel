@@ -31,6 +31,19 @@ public class EnemyWeaponController : MonoBehaviour
       
     }
 
+
+    public void Block(int on)
+    {
+        if (on == 1)
+        {
+            BroadcastMessage("Blocking");
+        }
+        else if (on == 0)
+        {
+            BroadcastMessage("NotBlocking");
+        }
+    }
+
     public void Stop()
     {
         BroadcastMessage("StopAttacking");

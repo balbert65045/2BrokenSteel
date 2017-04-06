@@ -219,12 +219,12 @@ namespace Player
         {
             if (EnemyLeft == LockedEnemy)
             {
-                Debug.Log("EnemyLost");
+               // Debug.Log("EnemyLost");
                 LockedEnemy = null;
                 TargetArrow.gameObject.SetActive(false);
                 //TargetArrow.Targeted(null);
                 Locked = false;
-                Debug.Log("Unlocked");
+             //   Debug.Log("Unlocked");
                 m_MouseLook.Unlock();
             }
         }

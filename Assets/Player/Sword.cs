@@ -84,34 +84,35 @@ namespace Player
             SwordBox.enabled = false;
         }
 
-        private void OnCollisionEnter(Collision collision)
+        private void OnTriggerEnter(Collider col)
         {
             //Debug.Log("Entered Collision");
-            if (collision.gameObject.GetComponent<Enemy_AI_Control>())
+            if (col.gameObject.GetComponent<Enemy_AI_Control>())
             {
-                collision.gameObject.GetComponent<Enemy_AI_Control>().DisablePath();
+                col.gameObject.GetComponent<Enemy_AI_Control>().DisablePath();
             }
 
-            if (collision.gameObject.GetComponent<LaunchObject>())
+            if (col.gameObject.GetComponent<LaunchObject>())
             {
                 //Debug.Log("Launch Object Found");
-                Vector3 objLoc = collision.gameObject.transform.position;
+                Vector3 objLoc = col.gameObject.transform.position;
                 Vector3 LaunchVector = new Vector3(objLoc.x - PlayerController.transform.position.x, 1, objLoc.z - PlayerController.transform.position.z).normalized;
 
                 float InitialLaunchForce = 100;
-               // Debug.Log(LaunchVector);
+                // Debug.Log(LaunchVector);
                 //Debug.Log("LaunchVector: " + LaunchVector);
-                collision.gameObject.GetComponent<Rigidbody>().AddForce(LaunchVector * (InitialLaunchForce + PlayerRigidBody.velocity.magnitude), ForceMode.Impulse);
+                col.gameObject.GetComponent<Rigidbody>().AddForce(LaunchVector * (InitialLaunchForce + PlayerRigidBody.velocity.magnitude), ForceMode.Impulse);
             }
 
 
         }
 
-        private void OnCollisionExit(Collision collision)
+        private void OnTriggerExit(Collider col)
         {
-            if (collision.gameObject.GetComponent<Enemy>())
+          //  Debug.Log("TriggerExited");
+            if (col.gameObject.GetComponent<Enemy>())
             {
-                collision.gameObject.GetComponent<Enemy>().Readjust();
+                col.gameObject.GetComponent<Enemy>().Readjust();
             }
         }
     }

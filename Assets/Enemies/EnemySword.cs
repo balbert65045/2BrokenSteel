@@ -30,26 +30,18 @@ using UnityEngine;
         {
         //Debug.Log("QuickAttack!!!");
             Enemy.DisablePath();
-            EnemyRigidBody.AddRelativeForce(new Vector3(0, 0, QuickAttackForce), ForceMode.Impulse); 
             SwordBox.enabled = true;
 
         }
 
+    // NOT USED AT THE MOMENT //
         public void StrongAttack()
         {
-        //   if (!PlayerController.m_IsGrounded)
-        //    {
-        //       PlayerController.Atacking = true; 
-        //         PlayerRigidBody.AddRelativeForce(0, -StrongAttackForce, 0);
-        //      PlayerRigidBody.AddRelativeTorque(StrongAttackTorque, 0, 0);
-        //    }
-        //   else
 
-        //  Debug.Log("Attacked on ground");
                 Enemy.DisablePath() ;
                 EnemyRigidBody.AddRelativeForce(0, StrongAttackForce * .3f, StrongAttackForce * .8f);
                 SwordBox.enabled = true;
-            //Debug.Log("StrongAttack!!!");
+
         }
 
       
@@ -60,21 +52,20 @@ using UnityEngine;
             SwordBox.enabled = false;
         }
 
-        private void OnCollisionEnter(Collision collision)
+        private void OnTriggerEnter(Collider col)
         {
-        //Debug.Log("Entered Collision");
-        Debug.Log("Collision with " + collision.gameObject.name);
-            
-            if (collision.gameObject.GetComponent<Player1>())
-            {
-                //Debug.Log("Launch Object Found");
-                Vector3 objLoc = collision.gameObject.transform.position;
-                Vector3 LaunchVector = new Vector3(objLoc.x - Enemy.transform.position.x, 1, objLoc.z - Enemy.transform.position.z).normalized;
 
+            
+            if (col.gameObject.GetComponent<Player1>())
+            {
+          
+                col.gameObject.GetComponent<Player1>().PlayerHit();
+                Vector3 objLoc = col.gameObject.transform.position;
+                Vector3 LaunchVector = new Vector3(objLoc.x - Enemy.transform.position.x, 1, objLoc.z - Enemy.transform.position.z).normalized;
+                
                 float InitialLaunchForce = 100;
-                // Debug.Log(LaunchVector);
-                //Debug.Log("LaunchVector: " + LaunchVector);
-                collision.gameObject.GetComponent<Rigidbody>().AddForce(LaunchVector * (InitialLaunchForce + EnemyRigidBody.velocity.magnitude), ForceMode.Impulse);
+
+                col.gameObject.GetComponent<Rigidbody>().AddForce(LaunchVector * (InitialLaunchForce + EnemyRigidBody.velocity.magnitude), ForceMode.Impulse);
             }
 
 

@@ -11,20 +11,7 @@ using UnityStandardAssets.CrossPlatformInput;
     [RequireComponent(typeof(Animator))]
     public class Enemy : MonoBehaviour
     {
-        [SerializeField]
-        float m_MovingTurnSpeed = 360;
-        [SerializeField]
-        float m_StationaryTurnSpeed = 180;
-        [SerializeField]
-        float m_JumpPower = 12f;
-        [Range(1f, 4f)]
-        [SerializeField]
-        float m_GravityMultiplier = 2f;
-        [SerializeField]
-        float m_MoveSpeedMultiplier = 1f;
-        [SerializeField]
-        float m_AnimSpeedMultiplier = 1f;
-        [SerializeField]
+       
         float m_GroundCheckDistance = 0.1f;
 
         [SerializeField]
@@ -32,7 +19,7 @@ using UnityStandardAssets.CrossPlatformInput;
 
 
         Rigidbody m_Rigidbody;
-        bool m_IsGrounded;
+        public bool m_IsGrounded;
         float m_OrigGroundCheckDistance;
         float m_TurnAmount;
         float m_ForwardAmount;
@@ -59,12 +46,18 @@ using UnityStandardAssets.CrossPlatformInput;
 
         private void Update()
         {
-           // Debug.Log(m_Rigidbody.velocity.magnitude);
+        CheckGroundStatus();
+        // Debug.Log(m_Rigidbody.velocity.magnitude);
             if (hit && m_Rigidbody.velocity.magnitude < 4f)
             {
                 hit = false;
                 Enemy_AI_Control.MoveAgain();
             }
+
+            if (!m_IsGrounded)
+           {
+             HandleAirborne();
+           }
         }
 
         public void Readjust()
@@ -73,16 +66,45 @@ using UnityStandardAssets.CrossPlatformInput;
         }
 
 
+
         public void Move(Transform player)
         {
           //  Debug.Log("Moving");
             transform.rotation = EnemyRotation.Rotate(player, transform);
         }
 
-
-
-
+        
+    private void HandleAirborne()
+    {
+        m_GroundCheckDistance = m_Rigidbody.velocity.y < 0 ? m_OrigGroundCheckDistance : 0.01f;
     }
+
+
+
+
+    private void CheckGroundStatus()
+    {
+
+        RaycastHit hitInfo;
+#if UNITY_EDITOR
+        Debug.DrawLine(transform.position + (Vector3.up * 0.1f), transform.position + (Vector3.up * 0.1f) + (Vector3.down * m_GroundCheckDistance));
+#endif
+        if (Physics.Raycast(transform.position + (Vector3.up * 0.1f), Vector3.down, out hitInfo, m_GroundCheckDistance))
+        {
+            m_GroundNormal = hitInfo.normal;
+            m_IsGrounded = true;
+            //Debug.Log(m_Rigidbody.velocity);
+        }
+        else
+        {
+            m_IsGrounded = false;
+
+            m_GroundNormal = Vector3.up;
+        }
+    }
+
+
+}
 
 
 

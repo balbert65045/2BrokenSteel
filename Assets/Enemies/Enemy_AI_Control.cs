@@ -64,9 +64,11 @@ public class Enemy_AI_Control : MonoBehaviour
 
     public void MoveAgain()
     {
-       // Debug.Log("Resumed");
-        //agent.ResetPath();
-        agent.enabled = true;
+        // Debug.Log("Resumed");
+        if (character.m_IsGrounded)
+        {
+            agent.enabled = true;
+        }
 
     }
 

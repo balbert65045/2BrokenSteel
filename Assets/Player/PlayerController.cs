@@ -529,6 +529,14 @@ namespace Player
                 }
         }
 
+        public void Hit()
+        {
+            m_IsGrounded = false;
+            m_GroundCheckDistance = 0.1f;
+        }
+       
+       
+
         
 
 

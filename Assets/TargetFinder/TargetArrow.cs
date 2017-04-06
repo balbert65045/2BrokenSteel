@@ -38,8 +38,8 @@ public class TargetArrow : MonoBehaviour {
                 MovingUp = true;
                 Mathf.Clamp(3, 4, StartHeight += moveSpeed * Time.deltaTime);
             }
-            Debug.Log(StartHeight);
-            Debug.Log(MovingUp);
+         //   Debug.Log(StartHeight);
+          //  Debug.Log(MovingUp);
         }
 
     }
@@ -49,7 +49,7 @@ public class TargetArrow : MonoBehaviour {
     {
 
             Enemy = Target;
-        Debug.Log(Enemy.transform.position);
+       // Debug.Log(Enemy.transform.position);
 
     }
 
