@@ -39,6 +39,7 @@ namespace Player
         Vector3 m_GroundNormal;
 
         private bool moving;
+        private bool Sliding = false;
         public bool Atacking = false; 
         private Transform m_Cam;
 
@@ -50,8 +51,16 @@ namespace Player
 
         private Quaternion OldRotation;
         private float BackwardsAngle;
-        private float CurrentAngle;
+        private float CurrentAngleY;
+        private float CurrentAngleZ = 0; 
         private bool FullRotation = false;
+        private bool FullRotationZ = false;
+
+        private bool LaunchedLeft = false;
+        private bool LaunchedRight = false;
+        private float LandingTime = .25f;
+        private bool AbouttoLand = false;
+        private Vector3 LaunchBegginingRotation; 
 
         private bool M_Blocked = false;
 
@@ -120,8 +129,9 @@ namespace Player
             // apply extra gravity from multiplier:
             Vector3 extraGravityForce = (Physics.gravity * m_GravityMultiplier) - Physics.gravity;
             m_Rigidbody.AddForce(extraGravityForce);
+            m_Rigidbody.velocity = new Vector3(Mathf.Clamp(m_Rigidbody.velocity.x, -m_MaxSpeed, m_MaxSpeed), m_Rigidbody.velocity.y, Mathf.Clamp(m_Rigidbody.velocity.z, -m_MaxSpeed, m_MaxSpeed));
 
-                 m_Rigidbody.velocity = new Vector3(Mathf.Clamp(m_Rigidbody.velocity.x, -m_MaxSpeed, m_MaxSpeed), m_Rigidbody.velocity.y, Mathf.Clamp(m_Rigidbody.velocity.z, -m_MaxSpeed, m_MaxSpeed));
+            AbouttoLand = LandGuider(m_Rigidbody.velocity.y, LandingTime, LaunchedLeft || LaunchedRight);
 
             HandleAirborneRotation(move);
             m_GroundCheckDistance = m_Rigidbody.velocity.y < 0 ? m_OrigGroundCheckDistance : 0.01f;
@@ -136,12 +146,96 @@ namespace Player
             SendMessage("UpdateXMin", -90);
             // rotate self in mid air
 
-            if (turnBackward)
+            if (AbouttoLand)
             {
-                BackwardsAngle = CalculateDesiredAngle(m_Cam.transform.rotation.eulerAngles.y, true);
-                CurrentAngle = CalculateCurrentAngle(transform.rotation.eulerAngles.y, CurrentAngle);
+                FullRotationZ = false;
+                Sliding = true;
+                float SideAngle;
+                if (LaunchedLeft)
+                {
+                    SideAngle = LaunchBegginingRotation.y + 90;
+                }
+                else
+                {
+                    SideAngle = LaunchBegginingRotation.y - 90;
+                }
 
-                if (CurrentAngle < BackwardsAngle)
+                CurrentAngleY = transform.rotation.eulerAngles.y;
+                Debug.Log(CurrentAngleY);
+                Debug.Log(SideAngle);
+
+                if (CurrentAngleY < SideAngle && LaunchedLeft)
+                {
+                    OldRotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, (OldRotation.eulerAngles.y + 15f), transform.rotation.eulerAngles.z);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, OldRotation, 20f * Time.deltaTime);
+                }
+
+                else if (CurrentAngleY > SideAngle && LaunchedRight)
+                {
+                    OldRotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, (OldRotation.eulerAngles.y - 15f), transform.rotation.eulerAngles.z);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, OldRotation, 20f * Time.deltaTime);
+                }
+               
+            }
+
+            else if (LaunchedLeft)
+            {
+                CurrentAngleZ = transform.rotation.eulerAngles.z;
+                float FlipAngle = 359;
+                Debug.Log(CurrentAngleZ);
+                Debug.Log(FlipAngle);
+                if (CurrentAngleZ < FlipAngle)
+                {
+                    OldRotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, Mathf.Clamp(OldRotation.eulerAngles.z + 15, 0, 359));
+                    transform.rotation = Quaternion.Slerp(transform.rotation, OldRotation, 20f * Time.deltaTime);
+                }
+                else
+                {
+                    transform.rotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, 0);
+                }
+            }
+
+            else if (LaunchedRight)
+            {
+                float FlipAngle;
+                CurrentAngleZ = transform.rotation.eulerAngles.z;
+                if (!FullRotationZ)
+                {
+                     FlipAngle = -360;
+                     FullRotationZ = true;
+                }
+                else if (CurrentAngleZ >= 0 && CurrentAngleZ <= 20)
+                {
+                    FlipAngle = 360;
+                }
+                else
+                {
+                    FlipAngle = 0;
+                }
+
+              
+
+
+                Debug.Log(CurrentAngleZ);
+                Debug.Log(FlipAngle);
+                if (CurrentAngleZ > FlipAngle)
+                {   
+                    OldRotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, OldRotation.eulerAngles.z - 15);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, OldRotation, 20f * Time.deltaTime);
+                }
+                else
+                {
+                    transform.rotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, 0);
+                }
+            }
+
+
+            else if (turnBackward)
+            {
+                BackwardsAngle = CalculateDesiredAngle(m_Cam.transform.rotation.eulerAngles.y, true, 180);
+                CurrentAngleY = CalculateCurrentAngle(transform.rotation.eulerAngles.y, CurrentAngleY);
+
+                if (CurrentAngleY < BackwardsAngle)
                 {
                     OldRotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, (OldRotation.eulerAngles.y + 10f), transform.rotation.eulerAngles.z);
                     transform.rotation = Quaternion.Slerp(transform.rotation, OldRotation, 20f * Time.deltaTime);
@@ -154,15 +248,15 @@ namespace Player
                 FullRotation = false;
                 transform.rotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y + 180, transform.rotation.eulerAngles.z);
                 OldRotation = transform.rotation;
-                CurrentAngle = transform.rotation.eulerAngles.y;
+                CurrentAngleY = transform.rotation.eulerAngles.y;
             }
 
             else if (turnForward)
             {
-                BackwardsAngle = CalculateDesiredAngle(m_Cam.transform.rotation.eulerAngles.y, false);
-                CurrentAngle = CalculateCurrentAngle(transform.rotation.eulerAngles.y, CurrentAngle);
+                BackwardsAngle = CalculateDesiredAngle(m_Cam.transform.rotation.eulerAngles.y, false, 180);
+                CurrentAngleY = CalculateCurrentAngle(transform.rotation.eulerAngles.y, CurrentAngleY);
 
-                if (CurrentAngle < BackwardsAngle)
+                if (CurrentAngleY < BackwardsAngle)
                 {
                     //  Debug.Log("TurnForward");
                     OldRotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, (OldRotation.eulerAngles.y + 10f), transform.rotation.eulerAngles.z);
@@ -180,16 +274,17 @@ namespace Player
             {
              //   m_Rigidbody.constraints = RigidbodyConstraints.None;
                 OldRotation = transform.rotation;
-                transform.rotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
+                transform.rotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
+                //   transform.rotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
                 FullRotation = false;
-                CurrentAngle = transform.rotation.eulerAngles.y;
+                CurrentAngleY = transform.rotation.eulerAngles.y;
             }
 
            else
             {
                 FullRotation = false;
-            //    transform.rotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
-                CurrentAngle = transform.rotation.eulerAngles.y;
+                //    transform.rotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
+                CurrentAngleY = transform.rotation.eulerAngles.y;
             }
 
         }
@@ -219,16 +314,27 @@ namespace Player
             {
 
                 //Rigidbody input movement
-                //transform.Translate(move);
-                m_Rigidbody.AddForce((move * m_MoveSpeedMultiplier) , ForceMode.Force);
-                //Counteractive Force 
-                if (RapidFiring)
+
+                if (m_Rigidbody.velocity.magnitude > 12.34)
                 {
-                   m_Rigidbody.AddForce((-m_Rigidbody.velocity * .5f), ForceMode.Force);
+                    Sliding = true;
                 }
                 else
                 {
-                    m_Rigidbody.AddForce((-m_Rigidbody.velocity * 1f), ForceMode.Force);
+                    Sliding = false;
+                }
+
+                if (RapidFiring)
+                {
+                   m_Rigidbody.AddForce((move * m_MoveSpeedMultiplier), ForceMode.Force);
+                }
+                else if (Sliding)
+                {
+                    
+                }
+                else
+                {
+                    m_Rigidbody.velocity = (move * m_MoveSpeedMultiplier);
                 }
 
                 //Land Friction
@@ -265,15 +371,17 @@ namespace Player
                 OldRotation = transform.rotation; 
             }
 
+            
+
             else if (turnBackward)
             {
 
-                BackwardsAngle = CalculateDesiredAngle(m_Cam.transform.rotation.eulerAngles.y, true);
-                CurrentAngle = CalculateCurrentAngle(transform.rotation.eulerAngles.y, CurrentAngle);
+                BackwardsAngle = CalculateDesiredAngle(m_Cam.transform.rotation.eulerAngles.y, true, 180);
+                CurrentAngleY = CalculateCurrentAngle(transform.rotation.eulerAngles.y, CurrentAngleY);
 
 
 
-                if (CurrentAngle < BackwardsAngle)
+                if (CurrentAngleY < BackwardsAngle)
                 {
                     OldRotation = Quaternion.Euler(0, (OldRotation.eulerAngles.y + 10f), 0);
                     transform.rotation = Quaternion.Slerp(transform.rotation, OldRotation, 20f * Time.deltaTime);
@@ -284,20 +392,38 @@ namespace Player
                 FullRotation = false;
                 transform.rotation = Quaternion.Euler(0, m_Cam.transform.rotation.eulerAngles.y + 180, 0);
                 OldRotation = transform.rotation;
-                CurrentAngle = transform.rotation.eulerAngles.y;
+                CurrentAngleY = transform.rotation.eulerAngles.y;
             }
 
 
             else if (turnForward)
             {
-                BackwardsAngle = CalculateDesiredAngle(m_Cam.transform.rotation.eulerAngles.y, false);
-                CurrentAngle = CalculateCurrentAngle(transform.rotation.eulerAngles.y, CurrentAngle);
+                BackwardsAngle = CalculateDesiredAngle(m_Cam.transform.rotation.eulerAngles.y, false, 180);
+                CurrentAngleY = CalculateCurrentAngle(transform.rotation.eulerAngles.y, CurrentAngleY);
 
-                if (CurrentAngle < BackwardsAngle)
+                if (CurrentAngleY < BackwardsAngle)
                 {
                     OldRotation = Quaternion.Euler(0, (OldRotation.eulerAngles.y + 10f), 0);
                     transform.rotation = Quaternion.Slerp(transform.rotation, OldRotation, 20f * Time.deltaTime);
                 }
+            }
+
+            else if (Sliding)
+            {
+                m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+                if (LaunchedLeft)
+                {
+                    transform.rotation = Quaternion.Euler(0, LaunchBegginingRotation.y + 90, 0);
+                    LaunchedLeft = false;
+                }
+                else if (LaunchedRight)
+                {
+                    transform.rotation = Quaternion.Euler(0, LaunchBegginingRotation.y - 90, 0);
+                    LaunchedRight = false;
+                }
+                 transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
+
+
             }
 
             //  else if (moving && AllowMovement)
@@ -305,7 +431,7 @@ namespace Player
             {
                 // Debug.Log("Moving");
                 FullRotation = false;
-                CurrentAngle = transform.rotation.eulerAngles.y;
+                CurrentAngleY = transform.rotation.eulerAngles.y;
                 m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
                 transform.rotation = (Quaternion.Euler(0, m_Cam.transform.rotation.eulerAngles.y, 0));
                 OldRotation = transform.rotation;
@@ -313,7 +439,7 @@ namespace Player
             else
             {
                 FullRotation = false;
-                CurrentAngle = transform.rotation.eulerAngles.y;
+                CurrentAngleY = transform.rotation.eulerAngles.y;
                 //Debug.Log("Idle");
                 OldRotation = transform.rotation;
             }
@@ -324,15 +450,15 @@ namespace Player
 
 
 
-        private float CalculateDesiredAngle(float Angle, bool GoingBackwards)
+        private float CalculateDesiredAngle(float Angle, bool GoingBackwards, float DesiredAmount)
         {
             if (GoingBackwards)
             {
-               return (Angle + 180);
+               return (Angle + DesiredAmount);
             }
             else
             {
-                if (Angle < 180)
+                if (Angle < DesiredAmount)
                 {
                     return(Angle + 360);
                 }
@@ -416,27 +542,39 @@ namespace Player
                 m_Animator.SetBool(("RapidFire"), true);
             }
 
-            else if (move != Vector3.zero)
+            else if (Sliding)
             {
-               m_Animator.SetBool(("RapidFire"), false);
+                m_Animator.SetBool(("RapidFire"), false);
+                m_Animator.SetBool("Moving", false);
+                RapidFiring = false;
+                moving = true;
+                m_Animator.SetBool("Sliding", true);
+              
+            }
+
+            else if (move != Vector3.zero && m_IsGrounded)
+            {
+                m_Animator.SetBool("Sliding", false);
+                m_Animator.SetBool(("RapidFire"), false);
                 RapidFiring = false;
                 moving = true;
                 m_Animator.SetBool("Moving", true);
                 float RunSpeed = 1.35f;
                 float SlowDownSpeed = 0.8f;
 
-                if (move.magnitude == 1)
-                {
-                    m_Animator.speed = RunSpeed;
-                }
-                else
-                {
-                    m_Animator.speed = SlowDownSpeed;
-                }
+               // if (move.magnitude == 1)
+             //   {
+             //       m_Animator.speed = RunSpeed;
+           //     }
+         //       else
+            //    {
+            //        m_Animator.speed = SlowDownSpeed;
+             //   }
             }
 
             else 
                {
+                    m_Animator.SetBool("Sliding", false);
                     m_Animator.SetBool("Moving", false);
                     m_Animator.SetBool(("RapidFire"), false);
                     RapidFiring = false;
@@ -459,12 +597,12 @@ namespace Player
                 }
                 else if (LeftMove)
                 {
+                   
                     m_Animator.SetTrigger("LeftLaunch");
 
                 }
                 else if (RightMove)
                 {
-                
                     m_Animator.SetTrigger("RightLaunch");
                 }
                
@@ -550,6 +688,32 @@ namespace Player
         }
         
 
+        private bool LandGuider(float yVelocity, float time, bool Launched)
+        {
+            if (Launched && yVelocity < 0)
+            {
+                float LandingDistance = -yVelocity * time;
+                if (Physics.Raycast(transform.position - (Vector3.up * .5f), Vector3.down, LandingDistance)){
+                    Debug.Log("About to hit ground");
+                    return true; 
+                }
+            }
+            return false;
+        }
+
+        public void LaunchStatus(int direction)
+        {
+            if (direction == 0)
+            {
+                LaunchedLeft = true;
+                LaunchBegginingRotation = transform.rotation.eulerAngles;
+            }
+            else if (direction == 1)
+            {
+                LaunchedRight = true;
+                LaunchBegginingRotation = transform.rotation.eulerAngles;
+            }
+        }
 
     }
 }

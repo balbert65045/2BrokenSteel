@@ -53,7 +53,7 @@ namespace Player
             Vector3 TorqueVector = new Vector3(0, 0, m_RelativeTourquePower);
 
             Player1.NormalForceController(ForceVector);
-            Player1.TorqueController(TorqueVector);
+          //  Player1.TorqueController(TorqueVector);
 
             BroadcastMessage("BlastLaunchLeft");
         }
@@ -64,7 +64,7 @@ namespace Player
             Vector3 TorqueVector = new Vector3(0, 0, -m_RelativeTourquePower);
 
             Player1.NormalForceController(ForceVector);
-            Player1.TorqueController(TorqueVector);
+            //Player1.TorqueController(TorqueVector);
             BroadcastMessage("BlastLaunchRight");
         }
 
