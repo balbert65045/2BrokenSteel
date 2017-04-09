@@ -5,31 +5,49 @@ using UnityEngine;
 
     public class EnemySword : MonoBehaviour
     {
-         Enemy_AI_Control Enemy; 
+         Enemy Enemy; 
 
         Rigidbody EnemyRigidBody;
-        public float QuickAttackForce = 100f;
-       
-        public float StrongAttackForce = 200f;
-    
-        
 
-        private BoxCollider SwordBox;
+        [Header ("Quick Attack Settings")]
+        public float QuickAttackForce = 100f;
+
+         [Header("Strong Attack Settings")]
+         public float StrongAttackForce = 200f;
+    
+        [Header("Force Settings")]
+        public float InitialLaunchForce = 100;
+
+         private BoxCollider SwordBox;
 
 
         // Use this for initialization
         void Start()
         {
-            Enemy = FindObjectOfType<Enemy_AI_Control>();
-            EnemyRigidBody = Enemy.gameObject.GetComponent<Rigidbody>();
+
+        if (GetComponentInParent<Rigidbody>() == null)
+        {
+            Debug.LogError("EnemySword must be child to object with RigidBody");
+        }
+        if (GetComponentInParent<Enemy>() == null)
+        {
+            Debug.LogError("EnemySword must be child to object with Enemy");
+        }
+
+            Enemy = GetComponentInParent<Enemy>();
+            EnemyRigidBody = GetComponentInParent<Rigidbody>();
+
             SwordBox = GetComponent<BoxCollider>();
             SwordBox.enabled = false;
         }
 
+
+
+
         public void QuickAttack()
         {
         //Debug.Log("QuickAttack!!!");
-            Enemy.DisablePath();
+            Enemy.DisablePathing();
             SwordBox.enabled = true;
 
         }
@@ -38,8 +56,9 @@ using UnityEngine;
         public void StrongAttack()
         {
 
-                Enemy.DisablePath() ;
-                EnemyRigidBody.AddRelativeForce(0, StrongAttackForce * .3f, StrongAttackForce * .8f);
+                Enemy.DisablePathing() ;
+                Vector3 ForceVector = new Vector3(0, StrongAttackForce * .3f, StrongAttackForce * .8f);
+                Enemy.GetComponent<LaunchObject>().NormalForceController(ForceVector);
                 SwordBox.enabled = true;
 
         }
@@ -48,7 +67,7 @@ using UnityEngine;
 
         public void StopAttacking()
         {
-            Enemy.MoveAgain();
+            Enemy.Recover();
             SwordBox.enabled = false;
         }
 
@@ -60,13 +79,15 @@ using UnityEngine;
             {
           
                 col.gameObject.GetComponent<Player1>().PlayerHit();
+
+
                 Vector3 objLoc = col.gameObject.transform.position;
                 Vector3 LaunchVector = new Vector3(objLoc.x - Enemy.transform.position.x, 1, objLoc.z - Enemy.transform.position.z).normalized;
-                
-                float InitialLaunchForce = 100;
 
-                col.gameObject.GetComponent<Rigidbody>().AddForce(LaunchVector * (InitialLaunchForce + EnemyRigidBody.velocity.magnitude), ForceMode.Impulse);
-            }
+                float LaunchForce = InitialLaunchForce + EnemyRigidBody.velocity.magnitude;
+                col.GetComponent<Player1>().ImpulseForceController(LaunchVector, LaunchForce);
+
+        }
 
 
         }

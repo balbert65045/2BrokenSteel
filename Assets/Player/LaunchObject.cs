@@ -4,13 +4,17 @@ using UnityEngine;
 
 public class LaunchObject : MonoBehaviour {
 
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+
+
+    public void ImpulseForceController(Vector3 ForceVector, float ForceAmount)
+    {
+        GetComponent<Rigidbody>().AddForce(ForceVector * (ForceAmount), ForceMode.Impulse);
+    }
+
+    public void NormalForceController(Vector3 ForceVector)
+    {
+        GetComponent<Rigidbody>().AddRelativeForce(ForceVector);
+    }
+
+
 }

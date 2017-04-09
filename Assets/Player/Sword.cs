@@ -8,74 +8,118 @@ namespace Player
     {
 
         PlayerController PlayerController;
-        Rigidbody PlayerRigidBody;
+        Rigidbody PlayerRigidbody; 
+        Player1 Player1;
+
+        [Header("Quick Attack Settings")]
         public float QuickAttackForce = 100f;
-        public float QuickAttackTourque = 100f;
+   //     public float QuickAttackTourque = 100f;
+
+        [Header("Strong Attack Settings")]
         public float StrongAttackForce = 200f;
-        public float StrongAttackTorque = 100f;
+     //   public float StrongAttackTorque = 100f;
+   
+        [Header("Side Move Settings")]
         public float SideStepForceX = 100f;
         public float SideStepForceZ = 100f;
         public float SideStepForceY = 100f;
         public float SideStepTorque = 100f;
 
+        [Header("Force Settings")]
+        public float InitialLaunchForce = 100f;
+        public float BlockedForce = 100f;
+
+
         private BoxCollider SwordBox;
+        private bool BlockedRecently = false;
+        private bool CanDoDamage = true;
+        private float TimeBlocked;
 
 
         // Use this for initialization
         void Start()
         {
-            PlayerController = FindObjectOfType<PlayerController>();
-            PlayerRigidBody = PlayerController.GetComponent<Rigidbody>();
+            if (GetComponentInParent<PlayerController>() == null)
+            {
+                Debug.LogError("Sword must be child to object with PlayerController");
+            }
+            if (GetComponentInParent<Rigidbody>() == null)
+            {
+                Debug.LogError("Sword must be child to object with RigidBody");
+            }
+            if (GetComponentInParent<Player1>() == null)
+            {
+                Debug.LogError("Sword must be child to object with Player1");
+            }
+
+            PlayerController = GetComponentInParent<PlayerController>();
+            PlayerRigidbody = GetComponentInParent<Rigidbody>();
+            Player1 = GetComponentInParent<Player1>();
+            
             SwordBox = GetComponent<BoxCollider>();
             SwordBox.enabled = false;
         }
 
+        void Update()
+        {
+
+            if (BlockedRecently)
+            {
+                TimeBlocked = Time.realtimeSinceStartup;
+                BlockedRecently = false;
+            }
+
+            if (TimeBlocked + 2f > Time.realtimeSinceStartup)
+            {
+                CanDoDamage = true;
+                TimeBlocked = 0;
+            }
+        }
+
+
         public void QuickAttack()
         {
             //Debug.Log("QuickAttack!!!");
-            PlayerRigidBody.AddRelativeForce(0, 0, QuickAttackForce);
+            Vector3 ForceVector = new Vector3(0, 0, QuickAttackForce);
+            Player1.NormalForceController(ForceVector);
             SwordBox.enabled = true;
 
         }
 
         public void StrongAttack()
         {
-            //   if (!PlayerController.m_IsGrounded)
-            //    {
-            //       PlayerController.Atacking = true; 
-            //         PlayerRigidBody.AddRelativeForce(0, -StrongAttackForce, 0);
-            //      PlayerRigidBody.AddRelativeTorque(StrongAttackTorque, 0, 0);
-            //    }
-            //   else
-            {
-                //  Debug.Log("Attacked on ground");
+
+
                 PlayerController.Atacking = true;
-                PlayerRigidBody.AddRelativeForce(0, StrongAttackForce * .3f, StrongAttackForce * .8f);
-            }
-            SwordBox.enabled = true;
-            //Debug.Log("StrongAttack!!!");
+                Vector3 ForceVector = new Vector3(0, StrongAttackForce * .3f, StrongAttackForce * .8f);
+                Player1.NormalForceController(ForceVector);
+                SwordBox.enabled = true;
+
         }
 
         public void SideStepRight()
         {
-            //PlayerRigidBody.AddRelativeTorque(0, SideStepTorque, 0);
+
             //Possibly change this to a spinning attack but must adjust mouse look snap
             PlayerController.Atacking = true;
-            PlayerRigidBody.constraints = RigidbodyConstraints.None;
-            PlayerRigidBody.AddRelativeForce(-SideStepForceX, SideStepForceY, SideStepForceZ);
-            PlayerRigidBody.AddRelativeTorque(0, 0, SideStepTorque);
-            //SwordBox.enabled = true;
-            //      Debug.Log("SideStepedRight!");
+            Vector3 ForceVector = new Vector3(-SideStepForceX, SideStepForceY, SideStepForceZ);
+            Vector3 TorqueVector = new Vector3(0, 0, SideStepTorque);
+
+            Player1.NormalForceController(ForceVector);
+            Player1.TorqueController(TorqueVector);
+
         }
 
         public void SideStepLeft()
         {
             //Possibly change this to a spinning attack but must adjust mouse look snap
             PlayerController.Atacking = true;
-            PlayerRigidBody.constraints = RigidbodyConstraints.None;
-            PlayerRigidBody.AddRelativeForce(SideStepForceX, SideStepForceY, SideStepForceZ);
-            PlayerRigidBody.AddRelativeTorque(0, 0, -SideStepTorque);
-            // SwordBox.enabled = true;
+            Vector3 ForceVector = new Vector3(SideStepForceX, SideStepForceY, SideStepForceZ);
+            Vector3 TorqueVector = new Vector3(0, 0, -SideStepTorque);
+
+            Player1.NormalForceController(ForceVector);
+            Player1.TorqueController(TorqueVector);
+
         }
 
         public void StopAttacking()
@@ -87,24 +131,38 @@ namespace Player
         private void OnTriggerEnter(Collider col)
         {
             //Debug.Log("Entered Collision");
-            if (col.gameObject.GetComponent<Enemy_AI_Control>())
+            if (col.gameObject.GetComponent<Shield>())
             {
-                col.gameObject.GetComponent<Enemy_AI_Control>().DisablePath();
-            }
-
-            if (col.gameObject.GetComponent<LaunchObject>())
-            {
-                //Debug.Log("Launch Object Found");
                 Vector3 objLoc = col.gameObject.transform.position;
-                Vector3 LaunchVector = new Vector3(objLoc.x - PlayerController.transform.position.x, 1, objLoc.z - PlayerController.transform.position.z).normalized;
+                Vector3 LaunchVector = new Vector3(objLoc.x - PlayerController.transform.position.x, 0, objLoc.z - PlayerController.transform.position.z).normalized;
 
-                float InitialLaunchForce = 100;
-                // Debug.Log(LaunchVector);
-                //Debug.Log("LaunchVector: " + LaunchVector);
-                col.gameObject.GetComponent<Rigidbody>().AddForce(LaunchVector * (InitialLaunchForce + PlayerRigidBody.velocity.magnitude), ForceMode.Impulse);
+                Player1.ImpulseForceController(-LaunchVector, BlockedForce);
+                //PlayerRigidBody.AddRelativeForce(new Vector3(0,0, -100), ForceMode.Impulse);
+                SendMessageUpwards("Blocked");
+                CanDoDamage = false;
+                BlockedRecently = true;
             }
 
+            else
+            {
+               
+                if (col.gameObject.GetComponent<LaunchObject>() && CanDoDamage)
+                {
+                    if (col.gameObject.GetComponent<Enemy>())
+                    {
+                        col.gameObject.GetComponent<Enemy>().DisablePathing();
+                    }
 
+                    Vector3 objLoc = col.gameObject.transform.position;
+                    Vector3 LaunchVector = new Vector3(objLoc.x - PlayerController.transform.position.x, 1, objLoc.z - PlayerController.transform.position.z).normalized;
+
+                    
+                    float LaunchForce = InitialLaunchForce + PlayerRigidbody.velocity.magnitude;
+
+                    col.GetComponent<LaunchObject>().ImpulseForceController(LaunchVector, LaunchForce);
+                 
+                }
+            }
         }
 
         private void OnTriggerExit(Collider col)
@@ -112,7 +170,7 @@ namespace Player
           //  Debug.Log("TriggerExited");
             if (col.gameObject.GetComponent<Enemy>())
             {
-                col.gameObject.GetComponent<Enemy>().Readjust();
+                col.gameObject.GetComponent<Enemy>().RecentlyHit();
             }
         }
     }

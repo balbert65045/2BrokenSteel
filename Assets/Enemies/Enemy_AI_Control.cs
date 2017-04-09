@@ -22,6 +22,8 @@ public class Enemy_AI_Control : MonoBehaviour
     private bool timeAttack = false;
     private bool InCombatPosition = false;
 
+
+
     private void Start()
     {
         // get the components on the object we need ( should not be null due to require component so no need to check )
@@ -51,7 +53,7 @@ public class Enemy_AI_Control : MonoBehaviour
     {
         if (target)
         {
-            character.Move(target.transform);
+            character.Rotate(target.transform);
         }
     }
 
@@ -62,10 +64,10 @@ public class Enemy_AI_Control : MonoBehaviour
         this.target = target;
     }
 
-    public void MoveAgain()
+    public void MoveAgain(bool m_IsGrounded)
     {
         // Debug.Log("Resumed");
-        if (character.m_IsGrounded)
+        if (m_IsGrounded)
         {
             agent.enabled = true;
         }

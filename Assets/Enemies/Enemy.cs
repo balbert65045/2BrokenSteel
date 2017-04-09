@@ -12,7 +12,7 @@ using UnityStandardAssets.CrossPlatformInput;
     public class Enemy : MonoBehaviour
     {
        
-        float m_GroundCheckDistance = 0.1f;
+        public float m_GroundCheckDistance = 0.1f;
 
         [SerializeField]
         private EnemyRotation EnemyRotation;
@@ -25,6 +25,7 @@ using UnityStandardAssets.CrossPlatformInput;
         float m_ForwardAmount;
         Vector3 m_GroundNormal;
 
+    public float recoverspeed = 4f; 
         public bool hit;
 
         private Enemy_AI_Control Enemy_AI_Control;
@@ -47,27 +48,23 @@ using UnityStandardAssets.CrossPlatformInput;
         private void Update()
         {
         CheckGroundStatus();
-        // Debug.Log(m_Rigidbody.velocity.magnitude);
-            if (hit && m_Rigidbody.velocity.magnitude < 4f)
-            {
-                hit = false;
-                Enemy_AI_Control.MoveAgain();
-            }
+        CheckRecoverStatus();
 
-            if (!m_IsGrounded)
+        if (!m_IsGrounded)
            {
              HandleAirborne();
            }
+
         }
 
-        public void Readjust()
+        public void RecentlyHit()
         {
             hit = true;
         }
 
 
 
-        public void Move(Transform player)
+        public void Rotate(Transform player)
         {
           //  Debug.Log("Moving");
             transform.rotation = EnemyRotation.Rotate(player, transform);
@@ -102,6 +99,28 @@ using UnityStandardAssets.CrossPlatformInput;
             m_GroundNormal = Vector3.up;
         }
     }
+
+    private void CheckRecoverStatus()
+    {
+        if (hit && m_Rigidbody.velocity.magnitude < recoverspeed)
+        {
+            hit = false;
+            Recover();
+        }
+    }
+
+
+    public void Recover()
+    {
+        Enemy_AI_Control.MoveAgain(m_IsGrounded);
+    }
+
+    public void DisablePathing()
+    {
+        Enemy_AI_Control.DisablePath();
+    }
+
+
 
 
 }

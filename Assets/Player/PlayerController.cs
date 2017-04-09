@@ -53,6 +53,8 @@ namespace Player
         private float CurrentAngle;
         private bool FullRotation = false;
 
+        private bool M_Blocked = false;
+
 
         // Use this for initialization
         void Start()
@@ -205,7 +207,7 @@ namespace Player
         /// 
         void HandleGroundedMovement(bool jump, Vector3 move)
         {
-            AlignWithCamera();
+            HandleGroundedRotation();
 
             if (jump)
             {
@@ -251,7 +253,7 @@ namespace Player
             }
         }
 
-        void AlignWithCamera()
+        void HandleGroundedRotation()
         {
 
             //   transform.rotation = Quaternion.Lerp(Quaternion.Euler(0, m_Cam.transform.rotation.eulerAngles.y, 0), Quaternion.Euler(0, transform.rotation.y, 0), TurnTime * Time.deltaTime);
@@ -475,6 +477,12 @@ namespace Player
                     {
                         m_Animator.SetTrigger("SwordOutTrig");
                     }
+                    else if (M_Blocked)
+                {
+                    Debug.Log("GotBlocked");
+                    m_Animator.SetTrigger("Blocked");
+                    M_Blocked = false;
+                }
                     else if (QuickMove)
                     {
                         m_Animator.SetTrigger(("QuickAttack"));
@@ -536,7 +544,10 @@ namespace Player
         }
        
        
-
+        public void Blocked()
+        {
+            M_Blocked = true;
+        }
         
 
 
