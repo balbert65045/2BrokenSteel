@@ -16,9 +16,10 @@ namespace Player
    //     public float QuickAttackTourque = 100f;
 
         [Header("Strong Attack Settings")]
-        public float StrongAttackForce = 200f;
-     //   public float StrongAttackTorque = 100f;
-   
+        public float StrongAttackForceY = 200f;
+        public float StrongAttackForceZ = 200f;
+        //   public float StrongAttackTorque = 100f;
+
         [Header("Side Move Settings")]
         public float SideStepForceX = 100f;
         public float SideStepForceZ = 100f;
@@ -91,7 +92,7 @@ namespace Player
 
 
                 PlayerController.Atacking = true;
-                Vector3 ForceVector = new Vector3(0, StrongAttackForce * .3f, StrongAttackForce * .8f);
+                Vector3 ForceVector = new Vector3(0, StrongAttackForceY , StrongAttackForceZ);
                 Player1.NormalForceController(ForceVector);
                 SwordBox.enabled = true;
 
@@ -106,7 +107,7 @@ namespace Player
             Vector3 TorqueVector = new Vector3(0, 0, SideStepTorque);
 
             Player1.NormalForceController(ForceVector);
-            Player1.TorqueController(TorqueVector);
+            //Player1.TorqueController(TorqueVector);
 
         }
 
@@ -118,7 +119,7 @@ namespace Player
             Vector3 TorqueVector = new Vector3(0, 0, -SideStepTorque);
 
             Player1.NormalForceController(ForceVector);
-            Player1.TorqueController(TorqueVector);
+         //   Player1.TorqueController(TorqueVector);
 
         }
 

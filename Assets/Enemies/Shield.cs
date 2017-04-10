@@ -9,6 +9,7 @@ public class Shield : MonoBehaviour {
     private BoxCollider ShieldCollider;
     private bool BlockedRecently = false;
     private float TimeBlocked;
+    public float BlockingForce = 100f; 
 
 
     void Start () {
@@ -58,7 +59,7 @@ public class Shield : MonoBehaviour {
         {
             BlockedRecently = true;
             Enemy.DisablePathing();
-            Enemy.gameObject.GetComponent<Rigidbody>().AddRelativeForce(new Vector3(0, 0, -100), ForceMode.Impulse);
+            Enemy.gameObject.GetComponent<Rigidbody>().AddRelativeForce(new Vector3(0, 0, -BlockingForce), ForceMode.Impulse);
         }
 
     }

@@ -29,7 +29,7 @@ namespace Player
         public float TurnTime = 5;
 
       //  [SerializeField]
-        float FrictionGround = .2f;
+        public float FrictionForce = .2f;
 
         Rigidbody m_Rigidbody;
         Animator m_Animator;
@@ -48,6 +48,8 @@ namespace Player
         public bool turnForward = false;
         public bool Backwards = false;
         public bool AllowMovement = true;
+
+        public float SlideSpeed = 13.34f;
 
         private Quaternion OldRotation;
         private float BackwardsAngle;
@@ -87,7 +89,7 @@ namespace Player
 
         }
 
-        public void Move(Vector3 move, bool jump, bool QuickMove, bool LeftMove, bool RightMove, bool SpecialMove, bool ActiveGauntlets, bool ActiveSword, bool WeaponSwitch)
+        public void Move(Vector3 move, bool jump, bool QuickMove, bool LeftMove, bool RightMove, bool SpecialMove, bool ActiveGauntlets, bool ActiveSword, bool WeaponSwitch, bool Locked)
         {
 
             // convert the world relative moveInput vector into a local-relative
@@ -108,7 +110,7 @@ namespace Player
             }
             else
             {
-                HandleAirborneMovement(move);
+                HandleAirborneMovement(move, Locked);
                
             }
             //Update animator
@@ -123,7 +125,7 @@ namespace Player
         /// Airoborne Movement and Rotation
         /// </summary>
         /// <param name="move"></param>
-        void HandleAirborneMovement(Vector3 move)
+        void HandleAirborneMovement(Vector3 move, bool Locked)
         {
          
             // apply extra gravity from multiplier:
@@ -133,11 +135,11 @@ namespace Player
 
             AbouttoLand = LandGuider(m_Rigidbody.velocity.y, LandingTime, LaunchedLeft || LaunchedRight);
 
-            HandleAirborneRotation(move);
+            HandleAirborneRotation(move, Locked);
             m_GroundCheckDistance = m_Rigidbody.velocity.y < 0 ? m_OrigGroundCheckDistance : 0.01f;
         }
 
-        void HandleAirborneRotation(Vector3 move)
+        void HandleAirborneRotation(Vector3 move, bool Locked)
         {
             // allow rotation
             m_Rigidbody.constraints = RigidbodyConstraints.None;
@@ -148,6 +150,7 @@ namespace Player
 
             if (AbouttoLand)
             {
+                Debug.Log("Landing");
                 FullRotationZ = false;
                 Sliding = true;
                 float SideAngle;
@@ -161,8 +164,8 @@ namespace Player
                 }
 
                 CurrentAngleY = transform.rotation.eulerAngles.y;
-                Debug.Log(CurrentAngleY);
-                Debug.Log(SideAngle);
+               // Debug.Log(CurrentAngleY);
+               // Debug.Log(SideAngle);
 
                 if (CurrentAngleY < SideAngle && LaunchedLeft)
                 {
@@ -182,8 +185,8 @@ namespace Player
             {
                 CurrentAngleZ = transform.rotation.eulerAngles.z;
                 float FlipAngle = 359;
-                Debug.Log(CurrentAngleZ);
-                Debug.Log(FlipAngle);
+               // Debug.Log(CurrentAngleZ);
+              //  Debug.Log(FlipAngle);
                 if (CurrentAngleZ < FlipAngle)
                 {
                     OldRotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, Mathf.Clamp(OldRotation.eulerAngles.z + 15, 0, 359));
@@ -216,8 +219,8 @@ namespace Player
               
 
 
-                Debug.Log(CurrentAngleZ);
-                Debug.Log(FlipAngle);
+               // Debug.Log(CurrentAngleZ);
+               // Debug.Log(FlipAngle);
                 if (CurrentAngleZ > FlipAngle)
                 {   
                     OldRotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, OldRotation.eulerAngles.z - 15);
@@ -267,14 +270,29 @@ namespace Player
            else if (Atacking)
             {
                 //  Debug.Log(m_Rigidbody.constraints);
-                transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
+                if (Locked)
+                {
+                    transform.rotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y, m_Cam.transform.rotation.eulerAngles.z);
+                }
+                else
+                {
+                    transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
+                }
+               
             }
 
             else if ((AllowMovement))
             {
              //   m_Rigidbody.constraints = RigidbodyConstraints.None;
                 OldRotation = transform.rotation;
-                transform.rotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
+                if (Locked)
+                {
+                    transform.rotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y, m_Cam.transform.rotation.eulerAngles.z);
+                }
+                else
+                {
+                    transform.rotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
+                }
                 //   transform.rotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
                 FullRotation = false;
                 CurrentAngleY = transform.rotation.eulerAngles.y;
@@ -315,7 +333,7 @@ namespace Player
 
                 //Rigidbody input movement
 
-                if (m_Rigidbody.velocity.magnitude > 12.34)
+                if (m_Rigidbody.velocity.magnitude > SlideSpeed)
                 {
                     Sliding = true;
                 }
@@ -330,7 +348,7 @@ namespace Player
                 }
                 else if (Sliding)
                 {
-                    
+                    m_Rigidbody.AddForce(-FrictionForce * m_Rigidbody.velocity, ForceMode.Force);
                 }
                 else
                 {
@@ -361,7 +379,7 @@ namespace Player
 
         void HandleGroundedRotation()
         {
-
+            m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ; ;
             //   transform.rotation = Quaternion.Lerp(Quaternion.Euler(0, m_Cam.transform.rotation.eulerAngles.y, 0), Quaternion.Euler(0, transform.rotation.y, 0), TurnTime * Time.deltaTime);
             if (Atacking)
             {
@@ -629,11 +647,11 @@ namespace Player
                     {
                         m_Animator.SetTrigger("StrongAttack");
                     }
-                    else if (RightMove)
+                    else if (RightMove && m_IsGrounded && !Sliding)
                     {
                         m_Animator.SetTrigger("SideStepRight");
                     }
-                    else if (LeftMove)
+                    else if (LeftMove && m_IsGrounded && !Sliding)
                     {
                         m_Animator.SetTrigger("SideStepLeft");
                     }
@@ -694,7 +712,7 @@ namespace Player
             {
                 float LandingDistance = -yVelocity * time;
                 if (Physics.Raycast(transform.position - (Vector3.up * .5f), Vector3.down, LandingDistance)){
-                    Debug.Log("About to hit ground");
+                   // Debug.Log("About to hit ground");
                     return true; 
                 }
             }
