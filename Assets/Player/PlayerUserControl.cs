@@ -23,6 +23,7 @@ namespace Player
         private bool m_LeftMove = false;
         private bool m_RightMove = false;
         private bool m_SpecialMove = false;
+        private bool m_BackwardsMove = false;
 
         private bool Locked = false;
         private int NumE = 0; 
@@ -137,11 +138,12 @@ namespace Player
                 m_Move = v * Vector3.forward + h * Vector3.right;
             }
             if (Input.GetKey(KeyCode.LeftShift)) m_Move *= 0.5f;
-            m_Player.Move(m_Move, m_Jump, m_QuickMove, m_LeftMove, m_RightMove, m_SpecialMove, ActiveGauntlets, ActiveSword, WeaponSwitch, Locked);
+            m_Player.Move(m_Move, m_Jump, m_QuickMove, m_LeftMove, m_RightMove, m_SpecialMove, ActiveGauntlets, ActiveSword, WeaponSwitch, m_BackwardsMove, Locked);
             m_Jump = false;
             m_QuickMove = false;
             m_LeftMove = false;
             m_RightMove = false;
+            m_BackwardsMove = false;
             if (ActiveSword)
             {
                 m_SpecialMove = false;
@@ -194,6 +196,10 @@ namespace Player
             if (!m_RightMove)
             {
                 m_RightMove = CrossPlatformInputManager.GetButtonDown("RightMove");
+            }
+            if (!m_BackwardsMove)
+            {
+                m_BackwardsMove = CrossPlatformInputManager.GetButtonDown("BackwardsMove");
             }
             if (ActiveGauntlets)
             {

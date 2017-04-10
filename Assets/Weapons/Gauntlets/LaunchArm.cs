@@ -47,7 +47,11 @@ public class LaunchArm : MonoBehaviour {
     }
     public void BlastLaunchBackward()
     {
-        BlastParticles.Play();
+        if (name == "LeftLaunchArm")
+        {
+          //  Debug.Log("LeftArmLaunched");
+        }
+            BlastParticles.Play();
     }
 
     public void BlastRapidFireRight()

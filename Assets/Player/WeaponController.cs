@@ -51,6 +51,11 @@ public class WeaponController : MonoBehaviour {
             BroadcastMessage("RapidFireLeft");
             AirManaSlider.value -= RapidFireManaCost;
         }
+        else if(type == 5)
+        {
+            Debug.Log("Still need to code mana with this move");
+            BroadcastMessage("LaunchBackward");
+        }
         else
         {
             Debug.Log("Out of Mana");

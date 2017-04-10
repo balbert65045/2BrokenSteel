@@ -89,7 +89,7 @@ namespace Player
 
         }
 
-        public void Move(Vector3 move, bool jump, bool QuickMove, bool LeftMove, bool RightMove, bool SpecialMove, bool ActiveGauntlets, bool ActiveSword, bool WeaponSwitch, bool Locked)
+        public void Move(Vector3 move, bool jump, bool QuickMove, bool LeftMove, bool RightMove, bool SpecialMove, bool ActiveGauntlets, bool ActiveSword, bool WeaponSwitch, bool m_BackwardsMove, bool Locked)
         {
 
             // convert the world relative moveInput vector into a local-relative
@@ -114,7 +114,7 @@ namespace Player
                
             }
             //Update animator
-            UpdateAnimator(move, QuickMove, LeftMove, RightMove, SpecialMove, ActiveGauntlets, ActiveSword, WeaponSwitch);
+            UpdateAnimator(move, QuickMove, LeftMove, RightMove, SpecialMove, ActiveGauntlets, ActiveSword, WeaponSwitch, m_BackwardsMove);
 
         }
 
@@ -547,7 +547,7 @@ namespace Player
 
 
 
-        void UpdateAnimator(Vector3 move, bool QuickMove, bool LeftMove, bool RightMove, bool SpecialMove, bool ActiveGauntlets, bool ActiveSword, bool WeaponSwitch)
+        void UpdateAnimator(Vector3 move, bool QuickMove, bool LeftMove, bool RightMove, bool SpecialMove, bool ActiveGauntlets, bool ActiveSword, bool WeaponSwitch, bool m_BackwardsMove)
         {
 
             //
@@ -615,7 +615,7 @@ namespace Player
                 }
                 else if (LeftMove)
                 {
-                   
+
                     m_Animator.SetTrigger("LeftLaunch");
 
                 }
@@ -623,8 +623,13 @@ namespace Player
                 {
                     m_Animator.SetTrigger("RightLaunch");
                 }
-               
+
+
+                else if (m_BackwardsMove)
+                {
+                    m_Animator.SetTrigger("BackwardLaunch");
                 }
+            }
 
                 if (ActiveSword)
                 {
