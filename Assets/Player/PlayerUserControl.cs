@@ -24,6 +24,7 @@ namespace Player
         private bool m_RightMove = false;
         private bool m_SpecialMove = false;
         private bool m_BackwardsMove = false;
+        private bool m_ForwardsMove = false;
 
         private bool Locked = false;
         private int NumE = 0; 
@@ -118,6 +119,7 @@ namespace Player
         {
             float h = CrossPlatformInputManager.GetAxis("Horizontal");
             float v = CrossPlatformInputManager.GetAxis("Vertical");
+          //Debug.Log(h);
 
             if (m_Cam != null)
             {
@@ -138,16 +140,17 @@ namespace Player
                 m_Move = v * Vector3.forward + h * Vector3.right;
             }
             if (Input.GetKey(KeyCode.LeftShift)) m_Move *= 0.5f;
-            m_Player.Move(m_Move, m_Jump, m_QuickMove, m_LeftMove, m_RightMove, m_SpecialMove, ActiveGauntlets, ActiveSword, WeaponSwitch, m_BackwardsMove, Locked);
+            m_Player.Move(m_Move, m_Jump, m_QuickMove, m_LeftMove, m_RightMove, m_SpecialMove, ActiveGauntlets, ActiveSword, WeaponSwitch, m_BackwardsMove, Locked, m_ForwardsMove);
             m_Jump = false;
             m_QuickMove = false;
-            m_LeftMove = false;
-            m_RightMove = false;
-            m_BackwardsMove = false;
-            if (ActiveSword)
-            {
-                m_SpecialMove = false;
-            }
+           // m_LeftMove = false;
+           // m_RightMove = false;
+           // m_BackwardsMove = false;
+            m_SpecialMove = false;
+            // if (ActiveSword)
+            //  {
+            //      m_SpecialMove = false;
+            //  }w
             WeaponSwitch = false;
             m_MouseLook.UpdateCursorLock();
 
@@ -189,31 +192,31 @@ namespace Player
             {
                 m_QuickMove = CrossPlatformInputManager.GetButtonDown("QuickMove");
             }
-            if (!m_LeftMove)
+            if (!m_SpecialMove)
             {
-                m_LeftMove = CrossPlatformInputManager.GetButtonDown("LeftMove");
-            }
-            if (!m_RightMove)
-            {
-                m_RightMove = CrossPlatformInputManager.GetButtonDown("RightMove");
-            }
-            if (!m_BackwardsMove)
-            {
-                m_BackwardsMove = CrossPlatformInputManager.GetButtonDown("BackwardsMove");
-            }
-            if (ActiveGauntlets)
-            {
-                    m_SpecialMove = CrossPlatformInputManager.GetButton("SpecialMove");
-            }
-            else if (ActiveSword)
-            {
-                if (!m_SpecialMove)
-                {
-                    m_SpecialMove = CrossPlatformInputManager.GetButtonDown("SpecialMove");
-                }
+                m_SpecialMove = CrossPlatformInputManager.GetButtonDown("SpecialMove");
             }
 
-          
+                m_LeftMove = CrossPlatformInputManager.GetButton("LeftMove");
+                m_RightMove = CrossPlatformInputManager.GetButton("RightMove");
+                m_BackwardsMove = CrossPlatformInputManager.GetButton("BackwardsMove");
+                m_ForwardsMove = CrossPlatformInputManager.GetButton("ForwardsMove");
+            
+
+
+                //   if (ActiveGauntlets)
+                //    {
+                //            m_SpecialMove = CrossPlatformInputManager.GetButton("SpecialMove");
+                //    }
+                //    else if (ActiveSword)
+                //    {
+                //        if (!m_SpecialMove)
+                //        {
+                //           m_SpecialMove = CrossPlatformInputManager.GetButtonDown("SpecialMove");
+                //       }
+                //   }
+
+
         }
 
         public void UpdateXMin(float value)

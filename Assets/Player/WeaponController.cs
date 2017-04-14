@@ -56,6 +56,10 @@ public class WeaponController : MonoBehaviour {
             Debug.Log("Still need to code mana with this move");
             BroadcastMessage("LaunchBackward");
         }
+        else if(type == 6)
+        {
+            BroadcastMessage("LaunchForwards");
+        }
         else
         {
             Debug.Log("Out of Mana");

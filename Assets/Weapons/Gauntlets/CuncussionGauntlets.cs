@@ -70,9 +70,16 @@ namespace Player
 
         public void LaunchBackward()
         {
-            Vector3 ForceVector = new Vector3(0, 0, -m_RelativeLaunchPowerUp);
+            Vector3 ForceVector = new Vector3(0, m_RelativeLaunchPowerSideY, -m_RelativeLaunchPowerSideX);
             Player1.NormalForceController(ForceVector);
             BroadcastMessage("BlastLaunchBackward");
+        }
+
+        public void LaunchForwards()
+        {
+            Vector3 ForceVector = new Vector3(0, m_RelativeLaunchPowerSideY, m_RelativeLaunchPowerSideX);
+            Player1.NormalForceController(ForceVector);
+            BroadcastMessage("BlastLaunchForwards");
         }
 
         public void RapidFireRight()

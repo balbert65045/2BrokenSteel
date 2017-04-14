@@ -50,21 +50,31 @@ namespace Player
         public bool AllowMovement = true;
 
         public float SlideSpeed = 13.34f;
+        public float SpinHeightDistance = 7f;
 
         private Quaternion OldRotation;
         private float BackwardsAngle;
         private float CurrentAngleY;
-        private float CurrentAngleZ = 0; 
+        private float CurrentAngleZ = 0;
+        private float CurrentAngleX = 0;
+
         private bool FullRotation = false;
         private bool FullRotationZ = false;
+        private bool FullRotationX = false;
 
+        private bool RecentlyLaunched = false;
+        private bool initialLaunch = false; 
         private bool LaunchedLeft = false;
         private bool LaunchedRight = false;
+        private bool LaunchedForward = false;
+        private bool LaunchedBackward = false;
+
         private float LandingTime = .25f;
         private bool AbouttoLand = false;
         private Vector3 LaunchBegginingRotation; 
 
         private bool M_Blocked = false;
+        private int spinCount = 0; 
 
 
         // Use this for initialization
@@ -89,7 +99,7 @@ namespace Player
 
         }
 
-        public void Move(Vector3 move, bool jump, bool QuickMove, bool LeftMove, bool RightMove, bool SpecialMove, bool ActiveGauntlets, bool ActiveSword, bool WeaponSwitch, bool m_BackwardsMove, bool Locked)
+        public void Move(Vector3 move, bool jump, bool QuickMove, bool LeftMove, bool RightMove, bool SpecialMove, bool ActiveGauntlets, bool ActiveSword, bool WeaponSwitch, bool m_BackwardsMove, bool Locked, bool  m_ForwardMovement)
         {
 
             // convert the world relative moveInput vector into a local-relative
@@ -114,7 +124,7 @@ namespace Player
                
             }
             //Update animator
-            UpdateAnimator(move, QuickMove, LeftMove, RightMove, SpecialMove, ActiveGauntlets, ActiveSword, WeaponSwitch, m_BackwardsMove);
+            UpdateAnimator(move, QuickMove, LeftMove, RightMove, SpecialMove, ActiveGauntlets, ActiveSword, WeaponSwitch, m_BackwardsMove, m_ForwardMovement);
 
         }
 
@@ -133,8 +143,10 @@ namespace Player
             m_Rigidbody.AddForce(extraGravityForce);
             m_Rigidbody.velocity = new Vector3(Mathf.Clamp(m_Rigidbody.velocity.x, -m_MaxSpeed, m_MaxSpeed), m_Rigidbody.velocity.y, Mathf.Clamp(m_Rigidbody.velocity.z, -m_MaxSpeed, m_MaxSpeed));
 
-            AbouttoLand = LandGuider(m_Rigidbody.velocity.y, LandingTime, LaunchedLeft || LaunchedRight);
+            AbouttoLand = LandGuider(m_Rigidbody.velocity.y, LandingTime, LaunchedLeft || LaunchedRight || LaunchedForward);
 
+            //Debug.Log("Yvelocity " + m_Rigidbody.velocity.y);
+          //  Debug.Log("planervelocity " + m_Rigidbody.velocity.x + m_Rigidbody.velocity.z);
             HandleAirborneRotation(move, Locked);
             m_GroundCheckDistance = m_Rigidbody.velocity.y < 0 ? m_OrigGroundCheckDistance : 0.01f;
         }
@@ -144,7 +156,7 @@ namespace Player
             // allow rotation
             m_Rigidbody.constraints = RigidbodyConstraints.None;
             //Debug.Log("Airborne");
-
+  
             SendMessage("UpdateXMin", -90);
             // rotate self in mid air
 
@@ -152,122 +164,164 @@ namespace Player
             {
                 Debug.Log("Landing");
                 FullRotationZ = false;
+                FullRotationX = false;
                 Sliding = true;
-                float SideAngle;
+                float SlideAngle = 0f;
                 if (LaunchedLeft)
                 {
-                    SideAngle = LaunchBegginingRotation.y + 90;
+                    SlideAngle = LaunchBegginingRotation.y + 90;
+                }
+                else if (LaunchedRight)
+                {
+                    SlideAngle = LaunchBegginingRotation.y - 90;
                 }
                 else
                 {
-                    SideAngle = LaunchBegginingRotation.y - 90;
+                    SlideAngle = LaunchBegginingRotation.y + 180;
                 }
 
                 CurrentAngleY = transform.rotation.eulerAngles.y;
-               // Debug.Log(CurrentAngleY);
-               // Debug.Log(SideAngle);
+                // Debug.Log(CurrentAngleY);
+                // Debug.Log(SideAngle);
 
-                if (CurrentAngleY < SideAngle && LaunchedLeft)
+                if (LaunchedLeft)
                 {
-                    OldRotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, (OldRotation.eulerAngles.y + 15f), transform.rotation.eulerAngles.z);
-                    transform.rotation = Quaternion.Slerp(transform.rotation, OldRotation, 20f * Time.deltaTime);
+                    transform.Rotate(Vector3.up * Time.deltaTime * 400, Space.Self);
                 }
 
-                else if (CurrentAngleY > SideAngle && LaunchedRight)
+                else if (LaunchedRight)
                 {
-                    OldRotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, (OldRotation.eulerAngles.y - 15f), transform.rotation.eulerAngles.z);
-                    transform.rotation = Quaternion.Slerp(transform.rotation, OldRotation, 20f * Time.deltaTime);
+                    transform.Rotate(Vector3.up * Time.deltaTime * -400, Space.Self);
                 }
-               
+
             }
 
-            else if (LaunchedLeft)
+            else if (LaunchedLeft && !CheckIfToCloseToSpin(SpinHeightDistance))
             {
-                CurrentAngleZ = transform.rotation.eulerAngles.z;
-                float FlipAngle = 359;
-               // Debug.Log(CurrentAngleZ);
-              //  Debug.Log(FlipAngle);
-                if (CurrentAngleZ < FlipAngle)
-                {
-                    OldRotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, Mathf.Clamp(OldRotation.eulerAngles.z + 15, 0, 359));
-                    transform.rotation = Quaternion.Slerp(transform.rotation, OldRotation, 20f * Time.deltaTime);
-                }
-                else
-                {
-                    transform.rotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, 0);
-                }
-            }
-
-            else if (LaunchedRight)
-            {
-                float FlipAngle;
-                CurrentAngleZ = transform.rotation.eulerAngles.z;
-                if (!FullRotationZ)
-                {
-                     FlipAngle = -360;
-                     FullRotationZ = true;
-                }
-                else if (CurrentAngleZ >= 0 && CurrentAngleZ <= 20)
-                {
-                    FlipAngle = 360;
-                }
-                else
-                {
-                    FlipAngle = 0;
-                }
-
               
-
-
-               // Debug.Log(CurrentAngleZ);
-               // Debug.Log(FlipAngle);
-                if (CurrentAngleZ > FlipAngle)
-                {   
-                    OldRotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, OldRotation.eulerAngles.z - 15);
-                    transform.rotation = Quaternion.Slerp(transform.rotation, OldRotation, 20f * Time.deltaTime);
+                m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY;
+                if (transform.rotation.eulerAngles.z < 349 && spinCount == 0)
+                {
+                    transform.Rotate(Vector3.forward * Time.deltaTime * 500, Space.Self);
                 }
                 else
                 {
-                    transform.rotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, 0);
+                    spinCount = 1;
+                    transform.rotation = Quaternion.Euler(new Vector3(0, transform.rotation.eulerAngles.y, 0));
                 }
             }
 
-
-            else if (turnBackward)
+            else if (LaunchedRight && !CheckIfToCloseToSpin(SpinHeightDistance))
             {
-                BackwardsAngle = CalculateDesiredAngle(m_Cam.transform.rotation.eulerAngles.y, true, 180);
-                CurrentAngleY = CalculateCurrentAngle(transform.rotation.eulerAngles.y, CurrentAngleY);
-
-                if (CurrentAngleY < BackwardsAngle)
+              //  Debug.Log(transform.rotation.eulerAngles.z);
+                m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY;
+                if ((transform.rotation.eulerAngles.z > 11 || transform.rotation.eulerAngles.z <= 0) && spinCount == 0)
                 {
-                    OldRotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, (OldRotation.eulerAngles.y + 10f), transform.rotation.eulerAngles.z);
-                    transform.rotation = Quaternion.Slerp(transform.rotation, OldRotation, 20f * Time.deltaTime);
+                    transform.Rotate(Vector3.forward * Time.deltaTime * -500, Space.Self);
+                }
+                else
+                {
+                    spinCount = 1; 
+                    transform.rotation = Quaternion.Euler(new Vector3(0, transform.rotation.eulerAngles.y, 0));
                 }
             }
-            else if (Backwards)
+
+            else if (LaunchedForward && !CheckIfToCloseToSpin(SpinHeightDistance))
             {
-                //  Debug.Log("RapidFiring");
-               // Debug.Log("Backwards");
-                FullRotation = false;
-                transform.rotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y + 180, transform.rotation.eulerAngles.z);
+                m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezeRotationY;
+                bool IncreasingAngle = (OldRotation.eulerAngles.x < transform.rotation.eulerAngles.x);
                 OldRotation = transform.rotation;
-                CurrentAngleY = transform.rotation.eulerAngles.y;
-            }
 
-            else if (turnForward)
-            {
-                BackwardsAngle = CalculateDesiredAngle(m_Cam.transform.rotation.eulerAngles.y, false, 180);
-                CurrentAngleY = CalculateCurrentAngle(transform.rotation.eulerAngles.y, CurrentAngleY);
-
-                if (CurrentAngleY < BackwardsAngle)
+                if (transform.rotation.eulerAngles.x < 280 && transform.rotation.eulerAngles.x > 270 && IncreasingAngle)
                 {
-                    //  Debug.Log("TurnForward");
-                    OldRotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, (OldRotation.eulerAngles.y + 10f), transform.rotation.eulerAngles.z);
-                    transform.rotation = Quaternion.Slerp(transform.rotation, OldRotation, 20f * Time.deltaTime);
+                    spinCount = 1;
                 }
+                if (transform.rotation.eulerAngles.x < 360 && transform.rotation.eulerAngles.x > 350 && IncreasingAngle && spinCount == 1)
+                {
+                    spinCount = 2;
+                }
+
+                if ((spinCount < 2))
+                {
+            
+                    transform.Rotate(Vector3.right * Time.deltaTime * 400, Space.Self);
+                   
+                }
+                else
+                {
+                    transform.rotation = Quaternion.Euler(new Vector3(0, transform.rotation.eulerAngles.y, 0));
+                }
+
+                
             }
 
-           else if (Atacking)
+
+
+            else if (LaunchedBackward && !CheckIfToCloseToSpin(SpinHeightDistance))
+            {
+                m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezeRotationY;
+                 Debug.Log(transform.rotation.eulerAngles.x);
+                bool DecreasingAngle = (OldRotation.eulerAngles.x > transform.rotation.eulerAngles.x);
+               // Debug.Log(DecreasingAngle);
+             //   Debug.Log(spinCount);
+                OldRotation = transform.rotation;
+              
+                if (transform.rotation.eulerAngles.x < 90 && transform.rotation.eulerAngles.x > 80 && !DecreasingAngle)
+                {
+                    spinCount = 1;
+                }
+                if (transform.rotation.eulerAngles.x < 10 && transform.rotation.eulerAngles.x > 0 && DecreasingAngle && spinCount == 1)
+                {
+                    spinCount = 2;
+                }
+               if (spinCount < 2)
+                {
+                    
+                    transform.Rotate(Vector3.right * Time.deltaTime * -400, Space.Self);
+                }
+                else
+                {
+                    transform.rotation = Quaternion.Euler(new Vector3(0, transform.rotation.eulerAngles.y, 0));
+                }
+
+            }
+
+            //FOR RAPID FIRE//
+        //    else if (turnBackward)
+        //    {
+        //        BackwardsAngle = CalculateDesiredAngle(m_Cam.transform.rotation.eulerAngles.y, true, 180);
+        //        CurrentAngleY = CalculateCurrentAngle(transform.rotation.eulerAngles.y, CurrentAngleY);
+
+            //    if (CurrentAngleY < BackwardsAngle)
+            //    {
+            //        OldRotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, (OldRotation.eulerAngles.y + 10f), transform.rotation.eulerAngles.z);
+            //        transform.rotation = Quaternion.Slerp(transform.rotation, OldRotation, 20f * Time.deltaTime);
+            //    }
+            //}
+            //else if (Backwards)
+            //{
+            //    //  Debug.Log("RapidFiring");
+            //    // Debug.Log("Backwards");
+            //    FullRotation = false;
+            //    transform.rotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y + 180, transform.rotation.eulerAngles.z);
+            //    OldRotation = transform.rotation;
+            //    CurrentAngleY = transform.rotation.eulerAngles.y;
+            //}
+
+            //else if (turnForward)
+            //{
+            //    BackwardsAngle = CalculateDesiredAngle(m_Cam.transform.rotation.eulerAngles.y, false, 180);
+            //    CurrentAngleY = CalculateCurrentAngle(transform.rotation.eulerAngles.y, CurrentAngleY);
+
+            //    if (CurrentAngleY < BackwardsAngle)
+            //    {
+            //        //  Debug.Log("TurnForward");
+            //        OldRotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, (OldRotation.eulerAngles.y + 10f), transform.rotation.eulerAngles.z);
+            //        transform.rotation = Quaternion.Slerp(transform.rotation, OldRotation, 20f * Time.deltaTime);
+            //    }
+            //}
+
+            else if (Atacking)
             {
                 //  Debug.Log(m_Rigidbody.constraints);
                 if (Locked)
@@ -278,12 +332,12 @@ namespace Player
                 {
                     transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
                 }
-               
+
             }
 
             else if ((AllowMovement))
             {
-             //   m_Rigidbody.constraints = RigidbodyConstraints.None;
+                //   m_Rigidbody.constraints = RigidbodyConstraints.None;
                 OldRotation = transform.rotation;
                 if (Locked)
                 {
@@ -291,18 +345,21 @@ namespace Player
                 }
                 else
                 {
-                    transform.rotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
+                    transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
                 }
                 //   transform.rotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
                 FullRotation = false;
                 CurrentAngleY = transform.rotation.eulerAngles.y;
+                FullRotationZ = false;
+                FullRotationX = false;
             }
 
-           else
+            else
             {
                 FullRotation = false;
                 //    transform.rotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
                 CurrentAngleY = transform.rotation.eulerAngles.y;
+                transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
             }
 
         }
@@ -320,6 +377,9 @@ namespace Player
         /// 
         void HandleGroundedMovement(bool jump, Vector3 move)
         {
+
+            ResetLaunches();
+
             HandleGroundedRotation();
 
             if (jump)
@@ -332,7 +392,7 @@ namespace Player
             {
 
                 //Rigidbody input movement
-
+                //Debug.Log(m_Rigidbody.velocity.magnitude);
                 if (m_Rigidbody.velocity.magnitude > SlideSpeed)
                 {
                     Sliding = true;
@@ -368,14 +428,24 @@ namespace Player
             }
         }
 
-        void ResetRotation()
+        void ResetLaunches()
         {
-            {
-                m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
-                transform.rotation = (Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0));
-
-            }
+            LaunchedLeft = false;
+            LaunchedRight = false;
+            LaunchedForward = false;
+            LaunchedBackward = false;
+            spinCount = 0;
         }
+
+
+        //void ResetRotation()
+        //{
+        //    {
+        //        m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+        //        transform.rotation = (Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0));
+
+        //    }
+        //}
 
         void HandleGroundedRotation()
         {
@@ -390,41 +460,41 @@ namespace Player
             }
 
             
+            //FOR RAPID FIREING//
+            //else if (turnBackward)
+            //{
 
-            else if (turnBackward)
-            {
-
-                BackwardsAngle = CalculateDesiredAngle(m_Cam.transform.rotation.eulerAngles.y, true, 180);
-                CurrentAngleY = CalculateCurrentAngle(transform.rotation.eulerAngles.y, CurrentAngleY);
-
-
-
-                if (CurrentAngleY < BackwardsAngle)
-                {
-                    OldRotation = Quaternion.Euler(0, (OldRotation.eulerAngles.y + 10f), 0);
-                    transform.rotation = Quaternion.Slerp(transform.rotation, OldRotation, 20f * Time.deltaTime);
-                }
-            }
-            else if (Backwards)
-            {
-                FullRotation = false;
-                transform.rotation = Quaternion.Euler(0, m_Cam.transform.rotation.eulerAngles.y + 180, 0);
-                OldRotation = transform.rotation;
-                CurrentAngleY = transform.rotation.eulerAngles.y;
-            }
+            //    BackwardsAngle = CalculateDesiredAngle(m_Cam.transform.rotation.eulerAngles.y, true, 180);
+            //    CurrentAngleY = CalculateCurrentAngle(transform.rotation.eulerAngles.y, CurrentAngleY);
 
 
-            else if (turnForward)
-            {
-                BackwardsAngle = CalculateDesiredAngle(m_Cam.transform.rotation.eulerAngles.y, false, 180);
-                CurrentAngleY = CalculateCurrentAngle(transform.rotation.eulerAngles.y, CurrentAngleY);
 
-                if (CurrentAngleY < BackwardsAngle)
-                {
-                    OldRotation = Quaternion.Euler(0, (OldRotation.eulerAngles.y + 10f), 0);
-                    transform.rotation = Quaternion.Slerp(transform.rotation, OldRotation, 20f * Time.deltaTime);
-                }
-            }
+            //    if (CurrentAngleY < BackwardsAngle)
+            //    {
+            //        OldRotation = Quaternion.Euler(0, (OldRotation.eulerAngles.y + 10f), 0);
+            //        transform.rotation = Quaternion.Slerp(transform.rotation, OldRotation, 20f * Time.deltaTime);
+            //    }
+            //}
+            //else if (Backwards)
+            //{
+            //    FullRotation = false;
+            //    transform.rotation = Quaternion.Euler(0, m_Cam.transform.rotation.eulerAngles.y + 180, 0);
+            //    OldRotation = transform.rotation;
+            //    CurrentAngleY = transform.rotation.eulerAngles.y;
+            //}
+
+
+            //else if (turnForward)
+            //{
+            //    BackwardsAngle = CalculateDesiredAngle(m_Cam.transform.rotation.eulerAngles.y, false, 180);
+            //    CurrentAngleY = CalculateCurrentAngle(transform.rotation.eulerAngles.y, CurrentAngleY);
+
+            //    if (CurrentAngleY < BackwardsAngle)
+            //    {
+            //        OldRotation = Quaternion.Euler(0, (OldRotation.eulerAngles.y + 10f), 0);
+            //        transform.rotation = Quaternion.Slerp(transform.rotation, OldRotation, 20f * Time.deltaTime);
+            //    }
+            //}
 
             else if (Sliding)
             {
@@ -432,12 +502,20 @@ namespace Player
                 if (LaunchedLeft)
                 {
                     transform.rotation = Quaternion.Euler(0, LaunchBegginingRotation.y + 90, 0);
-                    LaunchedLeft = false;
+                   
                 }
                 else if (LaunchedRight)
                 {
                     transform.rotation = Quaternion.Euler(0, LaunchBegginingRotation.y - 90, 0);
-                    LaunchedRight = false;
+                    
+                }
+                else if (LaunchedForward)
+                {
+                    transform.rotation = Quaternion.Euler(0, LaunchBegginingRotation.y + 180, 0);
+                }
+                else if (LaunchedBackward)
+                {
+                  
                 }
                  transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
 
@@ -547,20 +625,73 @@ namespace Player
 
 
 
-        void UpdateAnimator(Vector3 move, bool QuickMove, bool LeftMove, bool RightMove, bool SpecialMove, bool ActiveGauntlets, bool ActiveSword, bool WeaponSwitch, bool m_BackwardsMove)
+        void UpdateAnimator(Vector3 move, bool QuickMove, bool LeftMove, bool RightMove, bool SpecialMove, bool ActiveGauntlets, bool ActiveSword, bool WeaponSwitch, bool m_BackwardsMove,
+            bool m_ForwardMovement)
         {
+            // Debug.Log(move);
 
             //
             // animation bools!
             //
-           // Debug.Log(SpecialMove);
-            if (SpecialMove && ActiveGauntlets)
+            // Debug.Log(SpecialMove);
+            bool LeftInput = false;
+            bool RightInput = false;
+            bool ForwardInput = false; 
+            bool BackwardInput = false;
+          
+
+            if (m_IsGrounded)
             {
-                RapidFiring = true;
-                m_Animator.SetBool(("RapidFire"), true);
+                RecentlyLaunched = false;
             }
 
-            else if (Sliding)
+
+            if (LeftMove)
+            {
+                LeftInput = true;
+                RightInput = false;
+                ForwardInput = false;
+                BackwardInput = false;
+            } 
+            else if (RightMove)
+            {
+                LeftInput = false;
+                RightInput = true;
+                ForwardInput = false;
+                BackwardInput = false;
+            }
+            else if (m_ForwardMovement)
+            {
+                LeftInput = false;
+                RightInput = false;
+                ForwardInput = true;
+                BackwardInput = false;
+            }
+            else if (m_BackwardsMove)
+            {
+                LeftInput = false;
+                RightInput = false;
+                ForwardInput = false;
+                BackwardInput = true;
+            }
+          else
+            {
+                LeftInput = false;
+                RightInput = false;
+                ForwardInput = false;
+                BackwardInput = false;
+            }
+            
+
+
+
+        //    if (SpecialMove && ActiveGauntlets)
+      //      {
+         //       RapidFiring = true;
+         //       m_Animator.SetBool(("RapidFire"), true);
+         //   }
+
+            if (Sliding)
             {
                 m_Animator.SetBool(("RapidFire"), false);
                 m_Animator.SetBool("Moving", false);
@@ -577,8 +708,8 @@ namespace Player
                 RapidFiring = false;
                 moving = true;
                 m_Animator.SetBool("Moving", true);
-                float RunSpeed = 1.35f;
-                float SlowDownSpeed = 0.8f;
+           //     float RunSpeed = 1.35f;
+            //    float SlowDownSpeed = 0.8f;
 
                // if (move.magnitude == 1)
              //   {
@@ -608,27 +739,50 @@ namespace Player
                 {
                     m_Animator.SetTrigger("GauntletsOutTrig");
                 }
-                else if (QuickMove)
+                else if (SpecialMove && m_IsGrounded && !initialLaunch)
                 {
                     m_Animator.SetTrigger("UpLaunch");
+                    initialLaunch = true;
 
                 }
-                else if (LeftMove)
-                {
 
+                else if (SpecialMove && !m_IsGrounded && LeftInput && !RecentlyLaunched)
+                {
+                    if (Physics.Raycast(transform.position - (Vector3.up * .5f), Vector3.down, 3f))
+                    {
+                        m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, .8f * m_JumpPower, m_Rigidbody.velocity.z);
+                    }
                     m_Animator.SetTrigger("LeftLaunch");
-
+                    RecentlyLaunched = true; 
                 }
-                else if (RightMove)
+                else if (SpecialMove && !m_IsGrounded && RightInput && !RecentlyLaunched)
                 {
+                    if (Physics.Raycast(transform.position - (Vector3.up * .5f), Vector3.down, 3f))
+                    {
+                        m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, .8f * m_JumpPower, m_Rigidbody.velocity.z);
+                    }
                     m_Animator.SetTrigger("RightLaunch");
+                    RecentlyLaunched = true;
                 }
-
-
-                else if (m_BackwardsMove)
+                else if (SpecialMove && !m_IsGrounded && BackwardInput && !RecentlyLaunched)
                 {
+                    if (Physics.Raycast(transform.position - (Vector3.up * .5f), Vector3.down, 3f)){
+                        m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, .8f * m_JumpPower, m_Rigidbody.velocity.z);
+                    }
+                    
                     m_Animator.SetTrigger("BackwardLaunch");
+                    RecentlyLaunched = true;
                 }
+                else if(SpecialMove && !m_IsGrounded && ForwardInput && !RecentlyLaunched)
+                {
+                    if (Physics.Raycast(transform.position - (Vector3.up * .5f), Vector3.down, 3f))
+                    {
+                        m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, .8f * m_JumpPower, m_Rigidbody.velocity.z);
+                    }
+                    m_Animator.SetTrigger("LaunchForwards");
+                    RecentlyLaunched = true;
+                }
+
             }
 
                 if (ActiveSword)
@@ -652,14 +806,14 @@ namespace Player
                     {
                         m_Animator.SetTrigger("StrongAttack");
                     }
-                    else if (RightMove && m_IsGrounded && !Sliding)
-                    {
-                        m_Animator.SetTrigger("SideStepRight");
-                    }
-                    else if (LeftMove && m_IsGrounded && !Sliding)
-                    {
-                        m_Animator.SetTrigger("SideStepLeft");
-                    }
+                  //  else if (RightMove && m_IsGrounded && !Sliding)
+               //     {
+                //        m_Animator.SetTrigger("SideStepRight");
+                 //   }
+                 //   else if (LeftMove && m_IsGrounded && !Sliding)
+                  //  {
+                  //      m_Animator.SetTrigger("SideStepLeft");
+                  //  }
                   
 
                     
@@ -724,6 +878,19 @@ namespace Player
             return false;
         }
 
+        private bool CheckIfToCloseToSpin(float LandingDistance)
+        {
+            
+                if (Physics.Raycast(transform.position - (Vector3.up * .5f), Vector3.down, LandingDistance))
+                {
+                    // Debug.Log("About to hit ground");
+                    return true;
+                }
+            
+            return false;
+        }
+
+
         public void LaunchStatus(int direction)
         {
             if (direction == 0)
@@ -736,6 +903,21 @@ namespace Player
                 LaunchedRight = true;
                 LaunchBegginingRotation = transform.rotation.eulerAngles;
             }
+            else if (direction == 2)
+            {
+                LaunchedForward = true;
+                LaunchBegginingRotation = transform.rotation.eulerAngles;
+            }
+            else if (direction == 3)
+            {
+                LaunchedBackward = true;
+                LaunchBegginingRotation = transform.rotation.eulerAngles;
+            }
+        }
+
+        public void Launched()
+        {
+            initialLaunch = false; 
         }
 
     }
