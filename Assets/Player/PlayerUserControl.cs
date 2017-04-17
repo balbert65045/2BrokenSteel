@@ -25,6 +25,7 @@ namespace Player
         private bool m_SpecialMove = false;
         private bool m_BackwardsMove = false;
         private bool m_ForwardsMove = false;
+        private bool Slidinginput = false;
 
         private bool Locked = false;
         private int NumE = 0; 
@@ -67,6 +68,7 @@ namespace Player
             {
                 m_Jump = CrossPlatformInputManager.GetButtonDown("Jump");
             }
+            Slidinginput = CrossPlatformInputManager.GetButton("Jump");
             if (CrossPlatformInputManager.GetButtonDown("ShiftWeapon"))
             {
             //    SlowMoController(Time.realtimeSinceStartup);
@@ -140,7 +142,7 @@ namespace Player
                 m_Move = v * Vector3.forward + h * Vector3.right;
             }
             if (Input.GetKey(KeyCode.LeftShift)) m_Move *= 0.5f;
-            m_Player.Move(m_Move, m_Jump, m_QuickMove, m_LeftMove, m_RightMove, m_SpecialMove, ActiveGauntlets, ActiveSword, WeaponSwitch, m_BackwardsMove, Locked, m_ForwardsMove);
+            m_Player.Move(m_Move, m_Jump, m_QuickMove, m_LeftMove, m_RightMove, m_SpecialMove, ActiveGauntlets, ActiveSword, WeaponSwitch, m_BackwardsMove, Locked, m_ForwardsMove, Slidinginput, h);
             m_Jump = false;
             m_QuickMove = false;
            // m_LeftMove = false;

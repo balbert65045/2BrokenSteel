@@ -81,8 +81,11 @@ namespace Player
         public void QuickAttack()
         {
             //Debug.Log("QuickAttack!!!");
-            Vector3 ForceVector = new Vector3(0, 0, QuickAttackForce);
-            Player1.NormalForceController(ForceVector);
+            if (PlayerController.m_IsGrounded && !PlayerController.ShieldSliding)
+            {
+                Vector3 ForceVector = new Vector3(0, 0, QuickAttackForce);
+                Player1.NormalForceController(ForceVector);
+            }
             SwordBox.enabled = true;
 
         }
@@ -90,11 +93,13 @@ namespace Player
         public void StrongAttack()
         {
 
-
+            if (PlayerController.m_IsGrounded && !PlayerController.ShieldSliding)
+            {
                 PlayerController.Atacking = true;
                 Vector3 ForceVector = new Vector3(0, StrongAttackForceY , StrongAttackForceZ);
                 Player1.NormalForceController(ForceVector);
-                SwordBox.enabled = true;
+            }
+            SwordBox.enabled = true;
 
         }
 
