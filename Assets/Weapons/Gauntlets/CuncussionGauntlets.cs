@@ -23,7 +23,10 @@ namespace Player
 
         [Header("RapidFire Settings")]
         public float m_RelativeLaunchPowerRapidFire = 250; 
-    
+
+        [Header("ShieldSlide Settings")]
+        public float ShieldSlideLaunchForce = 500;
+
         // Use this for initialization
         void Start()
         {
@@ -94,6 +97,19 @@ namespace Player
             Vector3 ForceVector = new Vector3(0, 0, -m_RelativeLaunchPowerRapidFire);
             Player1.NormalForceController(ForceVector);
             BroadcastMessage("BlastRapidFireLeft");
+        }
+
+        public void ShieldSlideBoost()
+        {
+            Vector3 ForceVector = new Vector3(-ShieldSlideLaunchForce, 0, 0);
+            Player1.NormalForceController(ForceVector);
+            BroadcastMessage("BlastShieldSlide");
+        }
+        public void ShieldSlideBoostInv()
+        {
+            Vector3 ForceVector = new Vector3(ShieldSlideLaunchForce, 0, 0);
+            Player1.NormalForceController(ForceVector);
+            BroadcastMessage("BlastShieldSlideInv");
         }
 
     }

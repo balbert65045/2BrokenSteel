@@ -505,8 +505,9 @@ namespace Player
 
             else
             {
-               // FullRotation = false;
+                // FullRotation = false;
                 //    transform.rotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
+                m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezeRotationX;
                 CurrentAngleY = transform.rotation.eulerAngles.y;
                 if (Locked)
                 {
@@ -1016,7 +1017,7 @@ namespace Player
                     m_Animator.SetTrigger("GauntletsOutTrig");
                 }
 
-                if (!ShieldSliding)
+                if (!ShieldSliding && !Sliding)
                 {
 
                     if (SpecialMove  && LeftInput && !RecentlyLaunched)
@@ -1064,6 +1065,24 @@ namespace Player
 
                     }
 
+                }
+
+                else
+                {
+                    if (SpecialMove && ForwardInput)
+                    {
+                        if (InvertSlide)
+                        {
+                            m_Animator.SetTrigger("ShieldSlideBoostInv");
+                            RecentlyLaunched = true;
+                        }
+                        else
+                        {
+                            m_Animator.SetTrigger("ShieldSlideBoost");
+                            RecentlyLaunched = true;
+                        }
+                    }
+                  
                 }
 
 

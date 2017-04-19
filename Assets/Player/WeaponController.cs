@@ -60,6 +60,14 @@ public class WeaponController : MonoBehaviour {
         {
             BroadcastMessage("LaunchForwards");
         }
+        else if (type == 7)
+        {
+            BroadcastMessage("ShieldSlideBoost");
+        }
+        else if (type == 8)
+        {
+            BroadcastMessage("ShieldSlideBoostInv");
+        }
         else
         {
             Debug.Log("Out of Mana");

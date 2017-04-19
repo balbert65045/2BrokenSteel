@@ -71,4 +71,20 @@ public class LaunchArm : MonoBehaviour {
             BlastParticles.Play();
         }
     }
+
+    public void BlastShieldSlide()
+    {
+        if (name == "RightLaunchArm")
+        {
+            BlastParticles.Play();
+        }
+    }
+
+    public void BlastShieldSlideInv()
+    {
+        if (name == "LeftLaunchArm")
+        {
+            BlastParticles.Play();
+        }
+    }
 }
