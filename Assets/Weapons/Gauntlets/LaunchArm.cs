@@ -7,17 +7,31 @@ public class LaunchArm : MonoBehaviour {
     public GameObject Blast;
     public GameObject Smoke;
     private ParticleSystem SmokeParticle;
-    private ParticleSystem BlastParticles; 
+    private ParticleSystem BlastParticles;
+
+    private Color OriginalColor; 
+
+    private bool colorCharge = false;
 
 	// Use this for initialization
 	void Start () {
         BlastParticles = Blast.GetComponent<ParticleSystem>();
-
+        OriginalColor = GetComponent<MeshRenderer>().material.color;
     }
 	
 	// Update is called once per frame
 	void Update () {
-		
+		if (colorCharge)
+        {
+           // Debug.Log("ChangingColor");
+            float M_b = Mathf.Clamp(GetComponent<MeshRenderer>().material.color.b - Time.deltaTime, 0, 255);
+            float M_g = Mathf.Clamp(GetComponent<MeshRenderer>().material.color.g - Time.deltaTime, 0, 255);
+            GetComponent<MeshRenderer>().material.color = new Color(GetComponent<MeshRenderer>().material.color.r, M_g, M_b, GetComponent<MeshRenderer>().material.color.a);
+        }
+        else if (GetComponent<MeshRenderer>().material.color != OriginalColor)
+        {
+            GetComponent<MeshRenderer>().material.color = OriginalColor;
+        }
 	}
 
     public void BlastLaunchUp()
@@ -86,5 +100,16 @@ public class LaunchArm : MonoBehaviour {
         {
             BlastParticles.Play();
         }
+    }
+
+    public void ChangeColor()
+    {
+        colorCharge = true;
+        
+    }
+
+    public void ChangeColorBack()
+    {
+        colorCharge = false;
     }
 }

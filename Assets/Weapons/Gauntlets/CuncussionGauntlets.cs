@@ -28,6 +28,13 @@ namespace Player
         public float ShieldSlideLaunchForce = 500;
 
         // Use this for initialization
+        public float ChargeTimeForce = 100;
+
+        public bool chargeinit = false;
+        private float ChargeTime = 0;
+        private float InitialChargetimeForceFactor;
+        public bool LaunchedUp = false;
+
         void Start()
         {
 
@@ -37,14 +44,41 @@ namespace Player
             }
 
             Player1 = GetComponentInParent<Player1>();
-
+            InitialChargetimeForceFactor = ChargeTimeForce;
+            ChargeTimeForce = 0;
         }
 
         // Update is called once per frame
+        public void ChargeGauntlets()
+        {
+            if (!LaunchedUp)
+            {
+                if (!chargeinit)
+                {
+                    ChargeTime = Time.timeSinceLevelLoad;
+                    Debug.Log("TimeCaptured");
+                }
+                chargeinit = true;
+                ChargeTimeForce = InitialChargetimeForceFactor * (Time.timeSinceLevelLoad - ChargeTime);
+                BroadcastMessage("ChangeColor");
+            }
+        }
+
+        public void GauntletsIdle()
+        {
+            if (!LaunchedUp)
+            {
+                chargeinit = false;
+                ChargeTimeForce = 0;
+                BroadcastMessage("ChangeColorBack");
+            }
+        }
+
 
         public void LaunchUp()
         {
-            Vector3 ForceVector = new Vector3(0, m_RelativeLaunchPowerUp, 0);
+            LaunchedUp = true;
+            Vector3 ForceVector = new Vector3(0, m_RelativeLaunchPowerUp + ChargeTimeForce, 0);
             Player1.NormalForceController(ForceVector);
      
             BroadcastMessage("BlastLaunchUp");
@@ -52,7 +86,8 @@ namespace Player
 
         public void LaunchLeft()
         {
-            Vector3 ForceVector = new Vector3(-m_RelativeLaunchPowerSideX, m_RelativeLaunchPowerSideY, 0);
+            LaunchedUp = false;
+            Vector3 ForceVector = new Vector3(-(m_RelativeLaunchPowerSideX + ChargeTimeForce), m_RelativeLaunchPowerSideY + .3f * ChargeTimeForce, 0);
             Vector3 TorqueVector = new Vector3(0, 0, m_RelativeTourquePower);
 
             Player1.NormalForceController(ForceVector);
@@ -63,7 +98,8 @@ namespace Player
 
         public void LaunchRight()
         {
-            Vector3 ForceVector = new Vector3(m_RelativeLaunchPowerSideX, m_RelativeLaunchPowerSideY, 0);
+            LaunchedUp = false;
+            Vector3 ForceVector = new Vector3(m_RelativeLaunchPowerSideX + ChargeTimeForce, m_RelativeLaunchPowerSideY + .3f * ChargeTimeForce, 0);
             Vector3 TorqueVector = new Vector3(0, 0, -m_RelativeTourquePower);
 
             Player1.NormalForceController(ForceVector);
@@ -73,14 +109,16 @@ namespace Player
 
         public void LaunchBackward()
         {
-            Vector3 ForceVector = new Vector3(0, m_RelativeLaunchPowerSideY, -m_RelativeLaunchPowerSideX);
+            LaunchedUp = false;
+            Vector3 ForceVector = new Vector3(0, m_RelativeLaunchPowerSideY + .3f * ChargeTimeForce, -(m_RelativeLaunchPowerSideX + ChargeTimeForce));
             Player1.NormalForceController(ForceVector);
             BroadcastMessage("BlastLaunchBackward");
         }
 
         public void LaunchForwards()
         {
-            Vector3 ForceVector = new Vector3(0, m_RelativeLaunchPowerSideY, m_RelativeLaunchPowerSideX);
+            LaunchedUp = false;
+            Vector3 ForceVector = new Vector3(0, m_RelativeLaunchPowerSideY + .3f * ChargeTimeForce, m_RelativeLaunchPowerSideX + ChargeTimeForce);
             Player1.NormalForceController(ForceVector);
             BroadcastMessage("BlastLaunchForwards");
         }
@@ -101,16 +139,21 @@ namespace Player
 
         public void ShieldSlideBoost()
         {
-            Vector3 ForceVector = new Vector3(-ShieldSlideLaunchForce, 0, 0);
-            Player1.NormalForceController(ForceVector);
+            Vector3 ForceVector = new Vector3(-(ShieldSlideLaunchForce + ChargeTimeForce/10), 0, 0);
+            Player1.NormalImpulseForceController(ForceVector);
             BroadcastMessage("BlastShieldSlide");
         }
         public void ShieldSlideBoostInv()
         {
-            Vector3 ForceVector = new Vector3(ShieldSlideLaunchForce, 0, 0);
-            Player1.NormalForceController(ForceVector);
+            Vector3 ForceVector = new Vector3(ShieldSlideLaunchForce + ChargeTimeForce/10, 0, 0);
+            Player1.NormalImpulseForceController(ForceVector);
             BroadcastMessage("BlastShieldSlideInv");
         }
 
+        public void Landed()
+        {
+            LaunchedUp = false;
+            GauntletsIdle();
+        }
     }
 }

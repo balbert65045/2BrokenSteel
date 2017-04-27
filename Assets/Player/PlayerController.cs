@@ -77,7 +77,7 @@ namespace Player
         public bool P_Flip = false;
         private int spinCount = 0;
         private bool Spining = false;
-        private bool JustSpun = false;
+        public bool JustSpun = false;
         private bool LandingHard = false;
         private Vector3 AirSpeed;
 
@@ -88,6 +88,7 @@ namespace Player
         public float ShieldTurnSpeed = 5f;
         private float OldLookingAngle;
         public bool InvertSlide = false; 
+        private bool ShieldTrigger;
 
         // Use this for initialization
         void Start()
@@ -112,7 +113,8 @@ namespace Player
 
         }
 
-        public void Move(Vector3 move, bool jump, bool QuickMove, bool LeftMove, bool RightMove, bool SpecialMove, bool ActiveGauntlets, bool ActiveSword, bool WeaponSwitch, bool m_BackwardsMove, bool Locked, bool  m_ForwardMovement, bool Slidinginput,float h)
+        public void Move(Vector3 move, bool jump, bool QuickMove, bool LeftMove, bool RightMove, bool SpecialMove, bool ActiveGauntlets, bool ActiveSword, bool WeaponSwitch, bool m_BackwardsMove, bool Locked, bool  m_ForwardMovement, 
+            bool Slidinginput, bool m_SpecialMoveCharge, bool m_DodgeLeft, bool m_DodgeRight, float h)
         {
 
             // convert the world relative moveInput vector into a local-relative
@@ -165,7 +167,7 @@ namespace Player
                
             }
             //Update animator
-            UpdateAnimator(move, QuickMove, LeftMove, RightMove, SpecialMove, ActiveGauntlets, ActiveSword, WeaponSwitch, m_BackwardsMove, m_ForwardMovement);
+            UpdateAnimator(move, QuickMove, LeftMove, RightMove, SpecialMove, ActiveGauntlets, ActiveSword, WeaponSwitch, m_BackwardsMove, m_ForwardMovement, m_SpecialMoveCharge, m_DodgeLeft, m_DodgeRight);
 
         }
 
@@ -221,7 +223,7 @@ namespace Player
         {
             if (ForwardsLaunch)
             {
-                Debug.Log("TurnedForward");
+             //   Debug.Log("TurnedForward");
                 m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
                 transform.rotation = Quaternion.Euler(0, ShieldBegginingRotation.eulerAngles.y - 90, 0); 
             }
@@ -270,10 +272,10 @@ namespace Player
         /// <param name="move"></param>
         void HandleAirborneMovement(Vector3 move, bool Locked, bool SlidingInput)
         {
-
+            CheckForShieldSlide(m_Rigidbody.velocity.y, ShieldTransitionTime);
             //Debug.Log(CheckForShieldSlide(m_Rigidbody.velocity.y, ShieldTransitionTime));
 
-            if (SlidingInput)
+            if (SlidingInput && !Spining)
             {
                 ShieldSliding = CheckForShieldSlide(m_Rigidbody.velocity.y, ShieldTransitionTime);
                 if (ShieldSliding)
@@ -492,6 +494,7 @@ namespace Player
             else if (Atacking)
             {
                 //  Debug.Log(m_Rigidbody.constraints);
+                m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationY;
                 if (Locked)
                 {
                     transform.rotation = Quaternion.Euler(m_Cam.transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y, m_Cam.transform.rotation.eulerAngles.z);
@@ -617,7 +620,7 @@ namespace Player
 
             if (jump)
             {
-                Debug.Log("Jumped");
+             //   Debug.Log("Jumped");
                 m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, m_JumpPower, m_Rigidbody.velocity.z);
                 m_IsGrounded = false;
                 m_GroundCheckDistance = 0.1f;
@@ -699,7 +702,7 @@ namespace Player
             if (Atacking)
             {
                 m_IsGrounded = false;
-                m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ; ;
+                m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezeRotationY; 
                 transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
                 OldRotation = transform.rotation; 
             }
@@ -719,7 +722,7 @@ namespace Player
                 }
                 else if (LaunchedForward)
                 {
-                    Debug.Log("SlidingForward");
+                  //  Debug.Log("SlidingForward");
                     transform.rotation = Quaternion.Euler(0, LaunchBegginingRotation.y, 0);
                 }
                 else if (LaunchedBackward)
@@ -881,11 +884,10 @@ namespace Player
 
 
         void UpdateAnimator(Vector3 move, bool QuickMove, bool LeftMove, bool RightMove, bool SpecialMove, bool ActiveGauntlets, bool ActiveSword, bool WeaponSwitch, bool m_BackwardsMove,
-            bool m_ForwardMovement)
+            bool m_ForwardMovement, bool m_SpecialMoveCharge, bool m_DodgeLeft, bool m_DodgeRight)
         {
             // Debug.Log(move);
 
-            //
             // animation bools!
             //
             // Debug.Log(SpecialMove);
@@ -937,7 +939,11 @@ namespace Player
                 BackwardInput = false;
             }
 
-
+          
+            if (!ShieldSliding)
+            {
+                ShieldTrigger = true;
+            }
 
 
             //    if (SpecialMove && ActiveGauntlets)
@@ -946,20 +952,35 @@ namespace Player
             //       m_Animator.SetBool(("RapidFire"), true);
             //   }
 
+
             if (ShieldSliding)
             {
-                m_Animator.SetBool("ShieldSliding", true);
-                if (LaunchedRight || (LaunchedForward && !JustSpun) || (LaunchedBackward && JustSpun))
+
+                if (ShieldTrigger)
                 {
-                    BroadcastMessage("ShieldSlidingRight");
-                    InvertSlide = true;
+                    m_Animator.SetBool("ShieldSliding", true);
+                   
+                    Debug.Log("SetShield" + JustSpun);
+                    // if (LaunchedRight || (LaunchedForward && !JustSpun) || (LaunchedBackward && JustSpun))
+                    if (LaunchedRight || (LaunchedForward))
+                    {
+                        BroadcastMessage("ShieldSlidingRight");
+                        InvertSlide = true;
+                    }
+                    //    else if (LaunchedLeft || (LaunchedForward && JustSpun) || (LaunchedBackward && !JustSpun))
+                    else if (LaunchedLeft || (LaunchedBackward))
+                    {
+                        InvertSlide = false;
+                        BroadcastMessage("ShieldSlidingLeft");
+                    }
+                    else
+                    {
+                        InvertSlide = false;
+                        BroadcastMessage("ShieldSlidingLeft");
+                    }
+                    ShieldTrigger = false;
                 }
-                else if (LaunchedLeft || (LaunchedForward && JustSpun) || (LaunchedBackward && !JustSpun))
-                {
-                    InvertSlide = false;
-                    BroadcastMessage("ShieldSlidingLeft");
-                }
-               
+
             }
 
            else if (Sliding)
@@ -1012,13 +1033,19 @@ namespace Player
 
             if (ActiveGauntlets)
             {
+              
                 if (WeaponSwitch)
                 {
                     m_Animator.SetTrigger("GauntletsOutTrig");
+                    BroadcastMessage("GauntletsIdle");
                 }
 
                 if (!ShieldSliding && !Sliding)
                 {
+                    if (m_SpecialMoveCharge)
+                    {
+                        BroadcastMessage("ChargeGauntlets");
+                    }
 
                     if (SpecialMove  && LeftInput && !RecentlyLaunched)
                     {
@@ -1028,6 +1055,7 @@ namespace Player
                         }
                         m_Animator.SetTrigger("LeftLaunch");
                         RecentlyLaunched = true;
+                     
                     }
                     else if (SpecialMove && RightInput && !RecentlyLaunched)
                     {
@@ -1037,6 +1065,7 @@ namespace Player
                         }
                         m_Animator.SetTrigger("RightLaunch");
                         RecentlyLaunched = true;
+                       
                     }
                     else if (SpecialMove && BackwardInput && !RecentlyLaunched)
                     {
@@ -1047,6 +1076,7 @@ namespace Player
 
                         m_Animator.SetTrigger("BackwardLaunch");
                         RecentlyLaunched = true;
+                     
                     }
                     else if (SpecialMove && ForwardInput && !RecentlyLaunched)
                     {
@@ -1056,33 +1086,45 @@ namespace Player
                         }
                         m_Animator.SetTrigger("LaunchForwards");
                         RecentlyLaunched = true;
+                      
                     }
 
                     else if (SpecialMove && m_IsGrounded && !initialLaunch)
                     {
                         m_Animator.SetTrigger("UpLaunch");
                         initialLaunch = true;
-
                     }
+
 
                 }
 
-                else
+                else if (!Sliding)
                 {
+                    if (m_SpecialMoveCharge)
+                    {
+                        BroadcastMessage("ChargeGauntlets");
+                    }
+
                     if (SpecialMove && ForwardInput)
                     {
                         if (InvertSlide)
                         {
                             m_Animator.SetTrigger("ShieldSlideBoostInv");
                             RecentlyLaunched = true;
+                            BroadcastMessage("GauntletsIdle");
                         }
                         else
                         {
                             m_Animator.SetTrigger("ShieldSlideBoost");
                             RecentlyLaunched = true;
+                            BroadcastMessage("GauntletsIdle");
                         }
                     }
                   
+                }
+                else
+                {
+                   
                 }
 
 
@@ -1118,6 +1160,14 @@ namespace Player
                     {
                         m_Animator.SetTrigger("StrongAttack");
                     }
+                    else if (m_DodgeLeft && m_IsGrounded)
+                {
+                    m_Animator.SetTrigger("SideStepLeft");
+                }
+                    else if(m_DodgeRight && m_IsGrounded)
+                {
+                    m_Animator.SetTrigger("SideStepRight");
+                }
                   //  else if (RightMove && m_IsGrounded && !Sliding)
                //     {
                 //        m_Animator.SetTrigger("SideStepRight");
@@ -1141,6 +1191,8 @@ namespace Player
        private void CheckGroundStatus()
         {
 
+                bool WasGrounded = m_IsGrounded;
+
                 RaycastHit hitInfo;
 #if UNITY_EDITOR
                 Debug.DrawLine(transform.position + (Vector3.up * 0.1f), transform.position + (Vector3.up * 0.1f) + (Vector3.down * m_GroundCheckDistance));
@@ -1149,12 +1201,16 @@ namespace Player
                 {
                     m_GroundNormal = hitInfo.normal;
                     m_IsGrounded = true;
-                    //Debug.Log(m_Rigidbody.velocity);
-                    if (-m_Rigidbody.velocity.y >= 20f)
+                   
+                //Debug.Log(m_Rigidbody.velocity);
+                if (-m_Rigidbody.velocity.y >= 20f)
                     {
-                        BroadcastMessage("SchockwaveLanding");
+                    
+                        //BroadcastMessage("SchockwaveLanding");
                         // Debug.Log("SendtSchockwave");
                     }
+
+
                 }
                 else
                 {
@@ -1162,6 +1218,12 @@ namespace Player
 
                 m_GroundNormal = Vector3.up;
                 }
+
+                if (m_IsGrounded == true && WasGrounded == false)
+            {
+                //Debug.Log("Landed");
+                BroadcastMessage("Landed");
+            }
         }
 
         private void CheckForBadLanding()
@@ -1177,8 +1239,9 @@ namespace Player
         private bool CheckForShieldSlide(float yVelocity, float time)
         {
                 float LandingDistance = -yVelocity * time;
-                if (yVelocity < 0)
+                if (yVelocity < -2)
                 {
+                Debug.DrawLine(transform.position - (Vector3.up * .5f), transform.position - (Vector3.up * .5f) - (Vector3.up * LandingDistance), Color.red);
                     if (Physics.Raycast(transform.position - (Vector3.up * .5f), Vector3.down, LandingDistance))
                     {
                         // Debug.Log("About to hit ground");
@@ -1233,6 +1296,7 @@ namespace Player
         {
             if (direction == 0)
             {
+                BroadcastMessage("GauntletsIdle");
                 LaunchedLeft = true;
                 P_Flip = !CheckIfToCloseToSpin(SpinHeightDistance);
                 if (P_Flip)
@@ -1243,6 +1307,7 @@ namespace Player
             }
             else if (direction == 1)
             {
+                BroadcastMessage("GauntletsIdle");
                 LaunchedRight = true;
                 P_Flip = !CheckIfToCloseToSpin(SpinHeightDistance);
                 if (P_Flip)
@@ -1253,6 +1318,7 @@ namespace Player
             }
             else if (direction == 2)
             {
+                BroadcastMessage("GauntletsIdle");
                 LaunchedForward = true;
                 P_Flip = !CheckIfToCloseToSpin(SpinHeightDistance);
                 if (P_Flip)
@@ -1263,6 +1329,7 @@ namespace Player
             }
             else if (direction == 3)
             {
+                BroadcastMessage("GauntletsIdle");
                 LaunchedBackward = true;
                 P_Flip = !CheckIfToCloseToSpin(SpinHeightDistance);
                 if (P_Flip)
@@ -1275,6 +1342,7 @@ namespace Player
 
         public void Launched()
         {
+            BroadcastMessage("GauntletsIdle");
             initialLaunch = false; 
         }
 

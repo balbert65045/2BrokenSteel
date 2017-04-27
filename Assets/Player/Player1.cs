@@ -36,6 +36,12 @@ public class Player1 : MonoBehaviour {
         PlayerRigidBody.AddRelativeForce(ForceVector);
     }
 
+    public void NormalImpulseForceController(Vector3 ForceVector)
+    {
+        PlayerRigidBody.AddRelativeForce(ForceVector, ForceMode.Impulse);
+    }
+
+
     public void TorqueController(Vector3 TourqueVector)
     {
         PlayerRigidBody.constraints = RigidbodyConstraints.None;

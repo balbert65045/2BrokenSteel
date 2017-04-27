@@ -26,6 +26,11 @@ namespace Player
         private bool m_BackwardsMove = false;
         private bool m_ForwardsMove = false;
         private bool Slidinginput = false;
+        private bool m_SpecialMoveCharge = false;
+        private bool m_DodgeLeft = false;
+        private bool m_DodgeRight = false;
+
+        public bool Paused = false;
 
         private bool Locked = false;
         private int NumE = 0; 
@@ -37,12 +42,15 @@ namespace Player
 
         [SerializeField]
         private MouseLook m_MouseLook;
+     
+        private GameObject LockedEnemy;
+        private bool GamePaused = false;
 
-        private GameObject LockedEnemy; 
 
         private void Start()
         {
             // get the transform of the main camera
+         
             if (Camera.main != null)
             {
                 m_Cam = Camera.main.transform;
@@ -73,6 +81,11 @@ namespace Player
             {
             //    SlowMoController(Time.realtimeSinceStartup);
                 CheckWeaponChange();
+            }
+            if (!Paused)
+            {
+                Paused = CrossPlatformInputManager.GetButtonDown("pausebutton");
+                Debug.Log(Paused);
             }
 
             if (CrossPlatformInputManager.GetButtonDown("LockEnemy") && !Locked)
@@ -114,7 +127,11 @@ namespace Player
             }
 
             WeaponInput();
-            RotateView();
+
+           if (!GamePaused)          
+            {
+                RotateView();
+            }
         }
 
         private void FixedUpdate()
@@ -142,19 +159,25 @@ namespace Player
                 m_Move = v * Vector3.forward + h * Vector3.right;
             }
             if (Input.GetKey(KeyCode.LeftShift)) m_Move *= 0.5f;
-            m_Player.Move(m_Move, m_Jump, m_QuickMove, m_LeftMove, m_RightMove, m_SpecialMove, ActiveGauntlets, ActiveSword, WeaponSwitch, m_BackwardsMove, Locked, m_ForwardsMove, Slidinginput, h);
+            m_Player.Move(m_Move, m_Jump, m_QuickMove, m_LeftMove, m_RightMove, m_SpecialMove, ActiveGauntlets, ActiveSword, WeaponSwitch, m_BackwardsMove, Locked, m_ForwardsMove, Slidinginput, m_SpecialMoveCharge, m_DodgeLeft, m_DodgeRight, h);
             m_Jump = false;
+
+            Paused = false;
+
             m_QuickMove = false;
-           // m_LeftMove = false;
-           // m_RightMove = false;
-           // m_BackwardsMove = false;
+            m_DodgeLeft = false;
+            m_DodgeRight = false;
+            // m_LeftMove = false;
+            // m_RightMove = false;
+            // m_BackwardsMove = false;
             m_SpecialMove = false;
+            
             // if (ActiveSword)
             //  {
             //      m_SpecialMove = false;
             //  }w
             WeaponSwitch = false;
-            m_MouseLook.UpdateCursorLock();
+            //m_MouseLook.UpdateCursorLock();
 
         }
 
@@ -196,8 +219,21 @@ namespace Player
             }
             if (!m_SpecialMove)
             {
-                m_SpecialMove = CrossPlatformInputManager.GetButtonDown("SpecialMove");
+                m_SpecialMove = CrossPlatformInputManager.GetButtonUp("SpecialMove");
             }
+            if (!m_DodgeLeft)
+            {
+                m_DodgeLeft = CrossPlatformInputManager.GetButtonDown("DodgeLeft");
+            }
+            if (!m_DodgeRight)
+            {
+                m_DodgeRight = CrossPlatformInputManager.GetButtonDown("DodgeRight");
+            }
+
+
+
+            m_SpecialMoveCharge = CrossPlatformInputManager.GetButton("SpecialMove");
+            
 
                 m_LeftMove = CrossPlatformInputManager.GetButton("LeftMove");
                 m_RightMove = CrossPlatformInputManager.GetButton("RightMove");
@@ -238,6 +274,16 @@ namespace Player
              //   Debug.Log("Unlocked");
                 m_MouseLook.Unlock();
             }
+        }
+
+        public void SetCursorLock(bool value)
+        {
+            m_MouseLook.SetCursorLock(value);
+        }
+
+        public void SetCameraLock(bool Locked)
+        {
+            GamePaused = Locked;
         }
     }
 }
