@@ -62,9 +62,13 @@ namespace Player
                 // we use self-relative controls in this case, which probably isn't what the user wants, but hey, we warned them!
             }
 
+            //Not Necessary for all games with thirdplayer controller//
             TargetArrow = FindObjectOfType<TargetArrow>();
             TargetArrow.gameObject.SetActive(false);
             m_EnemyLockCollider = FindObjectOfType<EnemyLockCollider>(); 
+
+
+
             m_Player = GetComponent<PlayerController>();
             m_MouseLook.Init(transform, m_Cam);
         }
@@ -76,16 +80,21 @@ namespace Player
             {
                 m_Jump = CrossPlatformInputManager.GetButtonDown("Jump");
             }
+
+            //Not necessary for all games with third person controller 
             Slidinginput = CrossPlatformInputManager.GetButton("Jump");
             if (CrossPlatformInputManager.GetButtonDown("ShiftWeapon"))
             {
             //    SlowMoController(Time.realtimeSinceStartup);
                 CheckWeaponChange();
             }
+
+
+
             if (!Paused)
             {
                 Paused = CrossPlatformInputManager.GetButtonDown("pausebutton");
-                Debug.Log(Paused);
+               // Debug.Log(Paused);
             }
 
             if (CrossPlatformInputManager.GetButtonDown("LockEnemy") && !Locked)

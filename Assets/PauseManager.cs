@@ -40,6 +40,7 @@ namespace Player
 
         public void SetPause(bool value)
         {
+            Debug.Log("Paused");
             PlayerUserControl.SetCursorLock(!value);
             PlayerUserControl.SetCameraLock(value);
             PauseMenu.SetActive(value);
