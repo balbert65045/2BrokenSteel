@@ -1,0 +1,550 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace Player
+{
+
+    [RequireComponent(typeof(Rigidbody))]
+    [RequireComponent(typeof(Animator))]
+    public class PlayerController : MonoBehaviour
+    {
+
+        [SerializeField]
+        float m_MovingTurnSpeed = 360;
+        [SerializeField]
+        float m_StationaryTurnSpeed = 180;
+        [SerializeField]
+        float m_JumpPower = 12f;
+        [Range(1f, 4f)]
+        [SerializeField]
+        float m_GravityMultiplier = 2f;
+        [SerializeField]
+        float m_MoveSpeedMultiplier = 1f;
+        [SerializeField]
+        float m_MaxSpeed = 20f; 
+
+        public float m_GroundCheckDistance = 0.1f;
+        public bool m_IsGrounded;
+        public float TurnTime = 5;
+
+      //  [SerializeField]
+        public float FrictionForce = .2f;
+
+        Rigidbody m_Rigidbody;
+        Animator m_Animator;
+        float m_OrigGroundCheckDistance;
+        float m_TurnAmount;
+        float m_ForwardAmount;
+        Vector3 m_GroundNormal;
+
+        private bool moving;
+        private bool Sliding = false;
+        public bool Atacking = false; 
+        private Transform m_Cam;
+
+        public bool RapidFiring = false;
+        public bool turnBackward = false;
+        public bool turnForward = false;
+        public bool Backwards = false;
+        public bool AllowMovement = true;
+
+        public float SlideSpeed = 13.34f;
+        public float SpinHeightDistance = 7f;
+
+        private Quaternion OldRotation;
+        private float BackwardsAngle;
+        private float CurrentAngleY;
+        private float CurrentAngleZ = 0;
+        private float CurrentAngleX = 0;
+
+        private bool FullRotation = false;
+    //    private bool FullRotationZ = false;
+    //    private bool FullRotationX = false;
+
+        private bool RecentlyLaunched = false;
+        private bool initialLaunch = false; 
+        public bool LaunchedLeft = false;
+        private bool LaunchedRight = false;
+        private bool LaunchedForward = false;
+        private bool LaunchedBackward = false;
+
+        private float LandingTime = .25f;
+        private bool AbouttoLand = false;
+        private Vector3 LaunchBegginingRotation; 
+
+        private bool M_Blocked = false;
+        public bool P_Flip = false;
+        private int spinCount = 0;
+        private bool Spining = false;
+        public bool JustSpun = false;
+        private bool LandingHard = false;
+        private Vector3 AirSpeed;
+
+        private CapsuleCollider m_Collider;
+
+        public bool ShieldSliding = false;
+        private Quaternion ShieldBegginingRotation;
+        public float ShieldTurnSpeed = 5f;
+        private float OldLookingAngle;
+        public bool InvertSlide = false; 
+        private bool ShieldTrigger;
+
+		
+		private bool MovementOverride;
+		private bool RotationOverride; 
+        // Use this for initialization
+        void Start()
+        {
+            m_Rigidbody = GetComponent<Rigidbody>();
+            m_Animator = GetComponent<Animator>();
+            m_Collider = GetComponent<CapsuleCollider>();
+
+            m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+            m_OrigGroundCheckDistance = m_GroundCheckDistance;
+            //StartXMin = m_MouseLook.MinimumX; 
+            OldRotation = transform.rotation;
+
+            if (Camera.main != null)
+            {
+                m_Cam = Camera.main.transform;
+            }
+            else
+            {
+                Debug.Log("Camera is not found");
+            }
+
+        }
+
+        public void Move(Vector3 move, bool jump, bool QuickMove, bool LeftMove, bool RightMove, bool SpecialMove, bool ActiveGauntlets, bool ActiveSword, bool WeaponSwitch, bool m_BackwardsMove, bool Locked, bool  m_ForwardMovement, 
+            bool Slidinginput, bool m_SpecialMoveCharge, bool m_DodgeLeft, bool m_DodgeRight, float h)
+        {
+
+            // convert the world relative moveInput vector into a local-relative
+            // turn amount and forward amount required to head in the desired
+            // direction.
+            if (move.magnitude > 1f) move.Normalize();
+            CheckGroundStatus();
+          //  move = Vector3.ProjectOnPlane(move, m_GroundNormal);
+            //m_TurnAmount = Mathf.Atan2(move.x, move.z);
+            //m_ForwardAmount = move.z;
+
+
+            // control and velocity handling is different when grounded and airborne:
+            if (ShieldSliding)
+            {
+              
+                if (!m_IsGrounded)
+                {
+                    HandleAirborneRotation(move, Locked,  LaunchedLeft, LaunchedRight, LaunchedForward, LaunchedBackward);
+                }
+                else {
+                    HandleShieldSlidingMovement(h);
+                  
+                   
+                }
+                if (!Slidinginput)
+                {
+                    m_OrigGroundCheckDistance -= .7f;
+                    m_GroundCheckDistance -= .7f;
+                    ShieldSliding = false;
+
+                    //Jump
+                    if (m_IsGrounded)
+                    {
+                        m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, m_JumpPower, m_Rigidbody.velocity.z);
+                        m_IsGrounded = false;
+                        m_GroundCheckDistance = 0.1f;
+                    }
+                }
+            }
+
+            else if (m_IsGrounded && !MovementOverride)
+            {
+                SendMessage("UpdateXMin", -10);
+                HandleGroundedMovement(jump, move);
+            }
+            else
+            {
+                HandleAirborneMovement(move, Locked, Slidinginput);
+               
+            }
+			
+			if (!RotationOverride){
+				if (Locked){
+					HandleRotation(m_Cam.transform.rotation.eulerAngles.x, m_Cam.transform.rotation.eulerAngles.y, 0, true, false, true, false)
+				}
+				else{
+					HandleRotation(0, m_Cam.transform.rotation.eulerAngles.y, 0, true, false, true, false)
+				}
+				
+			}
+			
+
+        }
+		
+		
+		
+		public void HandleRotation(float Xrot, float Yrot, float Zrot, bool XFreeze, bool YFreeze, bool ZFreeze, bool SLERP){
+		
+			if (XFreeze && YFreeze && ZFreeze){
+				m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezeRotationX;
+			}
+			else if (XFreeze && YFreeze && !ZFreeze){
+				m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationX;
+			}
+			else if (XFreeze && !YFreeze && ZFreeze){
+				m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationZ | RigidbodyConstraints.FreezeRotationX;
+			}
+			else if (!XFreeze && YFreeze && ZFreeze){
+				m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
+			}
+			else if (XFreeze && !YFreeze && !ZFreeze){
+				m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX;
+			}
+			else if (!XFreeze && YFreeze && !ZFreeze){
+				m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationY;
+			}
+			else if (!XFreeze && !YFreeze && ZFreeze){
+				m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationZ;
+			}
+			else{
+				m_Rigidbody.constraints = RigidbodyConstraints.none;
+			}
+			
+			if (SLERP){
+				transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(Xrot, Yrot, Zrot), Time.deltaTime * 20f); 
+			}
+			else{
+				transform.rotation = Quaternion.Euler(Xrot, Yrot, Zrot)
+			}
+			
+			
+			
+			
+			
+		}
+
+        /// <summary>
+        /// Airoborne Movement and Rotation
+        /// </summary>
+        /// <param name="move"></param>
+        void HandleAirborneMovement(Vector3 move)
+        {
+           // CheckForShieldSlide(m_Rigidbody.velocity.y, ShieldTransitionTime);
+            //Debug.Log(CheckForShieldSlide(m_Rigidbody.velocity.y, ShieldTransitionTime));
+            
+
+            // apply extra gravity from multiplier:
+            Vector3 extraGravityForce = (Physics.gravity * m_GravityMultiplier) - Physics.gravity;
+            m_Rigidbody.AddForce(extraGravityForce);
+            m_Rigidbody.velocity = new Vector3(Mathf.Clamp(m_Rigidbody.velocity.x, -m_MaxSpeed, m_MaxSpeed), m_Rigidbody.velocity.y, Mathf.Clamp(m_Rigidbody.velocity.z, -m_MaxSpeed, m_MaxSpeed));
+
+         //   Debug.Log("Y " + m_Rigidbody.velocity.y);
+        //    Debug.Log("XZ " + m_Rigidbody.velocity.x + m_Rigidbody.velocity.z);
+            HandleAirborneRotation(move, Locked, LaunchedLeft, LaunchedRight, LaunchedForward, LaunchedBackward);
+          
+          
+        }
+
+
+        
+       
+
+
+
+        /// <summary>
+        /// Grounded Movement and Rotation
+        /// </summary>
+        /// <param name="jump"></param>
+        /// <param name="move"></param>
+        /// 
+        void HandleGroundedMovement(bool jump, Vector3 move)
+        {
+
+            if (jump)
+            {
+             //   Debug.Log("Jumped");
+                m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, m_JumpPower, m_Rigidbody.velocity.z);
+                m_IsGrounded = false;
+                m_GroundCheckDistance = 0.1f;
+            }
+
+            //HandleGroundedRotation();
+
+            
+            if (m_Rigidbody.velocity.magnitude > SlideSpeed)
+            {
+                Sliding = true;
+            }
+            else
+            {
+                Sliding = false;
+            }
+
+            if (Sliding)
+            {
+                m_Rigidbody.AddForce(-FrictionForce * m_Rigidbody.velocity, ForceMode.Force);
+            }
+            else
+            {
+                m_Rigidbody.velocity = (move * m_MoveSpeedMultiplier);
+                m_Rigidbody.velocity = new Vector3(Mathf.Clamp(m_Rigidbody.velocity.x, -m_MaxSpeed, m_MaxSpeed), 0, Mathf.Clamp(m_Rigidbody.velocity.z, -m_MaxSpeed, m_MaxSpeed));
+            }
+  
+        }
+            
+
+
+
+            //FOR RAPID FIREING//
+            //else if (turnBackward)
+            //{
+
+            //    BackwardsAngle = CalculateDesiredAngle(m_Cam.transform.rotation.eulerAngles.y, true, 180);
+            //    CurrentAngleY = CalculateCurrentAngle(transform.rotation.eulerAngles.y, CurrentAngleY);
+
+
+
+            //    if (CurrentAngleY < BackwardsAngle)
+            //    {
+            //        OldRotation = Quaternion.Euler(0, (OldRotation.eulerAngles.y + 10f), 0);
+            //        transform.rotation = Quaternion.Slerp(transform.rotation, OldRotation, 20f * Time.deltaTime);
+            //    }
+            //}
+            //else if (Backwards)
+            //{
+            //    FullRotation = false;
+            //    transform.rotation = Quaternion.Euler(0, m_Cam.transform.rotation.eulerAngles.y + 180, 0);
+            //    OldRotation = transform.rotation;
+            //    CurrentAngleY = transform.rotation.eulerAngles.y;
+            //}
+
+
+            //else if (turnForward)
+            //{
+            //    BackwardsAngle = CalculateDesiredAngle(m_Cam.transform.rotation.eulerAngles.y, false, 180);
+            //    CurrentAngleY = CalculateCurrentAngle(transform.rotation.eulerAngles.y, CurrentAngleY);
+
+            //    if (CurrentAngleY < BackwardsAngle)
+            //    {
+            //        OldRotation = Quaternion.Euler(0, (OldRotation.eulerAngles.y + 10f), 0);
+            //        transform.rotation = Quaternion.Slerp(transform.rotation, OldRotation, 20f * Time.deltaTime);
+            //    }
+            //}
+
+
+
+            //  else if (moving && AllowMovement)
+            //else if (AllowMovement)
+            //{
+            //    // Debug.Log("Moving");
+            //    FullRotation = false;
+            //    CurrentAngleY = transform.rotation.eulerAngles.y;
+            //    m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+            //    transform.rotation = (Quaternion.Euler(0, m_Cam.transform.rotation.eulerAngles.y, 0));
+            //    OldRotation = transform.rotation;
+            //}
+
+        }
+
+
+
+
+
+
+        //private float CalculateDesiredAngle(float Angle, bool GoingBackwards, float DesiredAmount)
+        //{
+        //    if (GoingBackwards)
+        //    {
+        //       return (Angle + DesiredAmount);
+        //    }
+        //    else
+        //    {
+        //        if (Angle < DesiredAmount)
+        //        {
+        //            return(Angle + 360);
+        //        }
+        //        else
+        //        {
+        //            return (Angle);
+        //        }
+        //    }
+        //}
+
+        //private float CalculateCurrentAngle(float AngleNow, float AngleBefore)
+        //{
+        //    if (AngleNow < 90 && AngleBefore > 270)
+        //    {
+        //        FullRotation = true;
+        //    }
+
+        //    if (FullRotation)
+        //    {
+        //        return (AngleNow + 360);
+        //    }
+        //    else
+        //    {
+        //        return (AngleNow);
+        //    }
+        
+
+        //public void PlayerTurn(int turn)
+        //{
+        //    // Turn Backwards 
+        //      if (turn == 1)
+        //      {
+        //       // Debug.Log("Turning");
+        //        turnBackward = true;
+        //        Backwards = false;
+        //        turnForward = false;
+        //        AllowMovement = false;
+        //    }
+        //    else if (turn == 2)
+        //    {
+        //        Backwards = true;
+        //        turnBackward = false;
+        //        turnForward = false;
+        //        AllowMovement = true;
+        //    }
+        //    else if (turn == 3)
+        //      {
+        //       // Debug.Log("Turning Forwards!");
+        //          turnForward = true;
+        //          Backwards = false;
+        //          turnBackward = false;
+        //          AllowMovement = false;
+        //    }
+            
+        //    else
+        //      {
+        //       // Debug.Log("Stoped Turning!");
+        //        Backwards = false;
+        //          AllowMovement = true;
+        //          turnBackward = false;
+        //          turnForward = false;
+        //      }
+        //}
+
+
+
+
+
+
+
+       
+        
+
+
+
+
+
+
+       private void CheckGroundStatus()
+        {
+
+                bool WasGrounded = m_IsGrounded;
+
+                RaycastHit hitInfo;
+#if UNITY_EDITOR
+                Debug.DrawLine(transform.position + (Vector3.up * 0.1f), transform.position + (Vector3.up * 0.1f) + (Vector3.down * m_GroundCheckDistance));
+#endif
+                if (Physics.Raycast(transform.position + (Vector3.up * 0.1f), Vector3.down, out hitInfo, m_GroundCheckDistance))
+                {
+                    m_GroundNormal = hitInfo.normal;
+                    m_IsGrounded = true;
+                   
+                //Debug.Log(m_Rigidbody.velocity);
+                if (-m_Rigidbody.velocity.y >= 20f)
+                    {
+                    
+                        //BroadcastMessage("SchockwaveLanding");
+                        // Debug.Log("SendtSchockwave");
+                    }
+
+
+                }
+                else
+                {
+                    m_IsGrounded = false;
+
+                m_GroundNormal = Vector3.up;
+                }
+
+                if (m_IsGrounded == true && WasGrounded == false)
+            {
+                //Debug.Log("Landed");
+                BroadcastMessage("Landed");
+            }
+        }
+
+        public void CheckForBadLanding()
+        {
+        //    if (Mathf.Abs(m_Rigidbody.velocity.y) > (Mathf.Abs(m_Rigidbody.velocity.x) + Mathf.Abs(m_Rigidbody.velocity.z)))
+            {
+               // Debug.Log("Landed Hard");
+                LandingHard = true;
+                AirSpeed = new Vector3(m_Rigidbody.velocity.x, 0, m_Rigidbody.velocity.z);
+            }
+        }
+
+        
+
+
+        public void Hit()
+        {
+            m_IsGrounded = false;
+            m_GroundCheckDistance = 0.1f;
+        }
+       
+       
+        public void Blocked()
+        {
+            M_Blocked = true;
+        }
+        
+
+
+
+      
+
+
+       
+
+
+        public void ExpandCollider()
+        {
+            m_Collider.height = 1.2f;
+            m_Collider.center = new Vector3(0, -.1f, 0);
+
+        }
+
+        public void ShrinkCollider()
+        {
+            m_Collider.height = 1f;
+            m_Collider.center = new Vector3(0, 0, 0);
+        }
+		
+		public void  AdjustGroundDistance(float distance){
+			 m_OrigGroundCheckDistance += distance;
+		}
+		
+		public void ShieldGlideMovement(Vector3 GlideVector, float TurnForce, bool jump, bool Enabled){
+			if (Enabled){
+					MovementOverride = true;
+					m_Rigidbody.AddRelativeForce(0, 0, TurnForce);
+					HandleGroundedMovement(GlideVector, false)
+			}
+			else{
+			
+				MovementOverride = false;
+			}
+		}
+		
+		public void OutsideRotation(bool Enabled)
+		{
+			RotationOverride = true;				
+		}
+		
+    }
+}

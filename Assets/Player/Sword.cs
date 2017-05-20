@@ -7,7 +7,8 @@ namespace Player
     public class Sword : MonoBehaviour
     {
 
-        PlayerController PlayerController;
+        PC PlayerController;
+        ShieldSlidingController ShieldSlidingController;
         Rigidbody PlayerRigidbody; 
         Player1 Player1;
 
@@ -30,6 +31,9 @@ namespace Player
         public float InitialLaunchForce = 100f;
         public float BlockedForce = 100f;
 
+        [Header("SuperCharge Settings")]
+        public float ImpulseForwardForce = 200f;
+
 
         private BoxCollider SwordBox;
         private bool BlockedRecently = false;
@@ -40,7 +44,7 @@ namespace Player
         // Use this for initialization
         void Start()
         {
-            if (GetComponentInParent<PlayerController>() == null)
+            if (GetComponentInParent<PC>() == null)
             {
                 Debug.LogError("Sword must be child to object with PlayerController");
             }
@@ -53,7 +57,8 @@ namespace Player
                 Debug.LogError("Sword must be child to object with Player1");
             }
 
-            PlayerController = GetComponentInParent<PlayerController>();
+            PlayerController = GetComponentInParent<PC>();
+            ShieldSlidingController = GetComponentInParent<ShieldSlidingController>();
             PlayerRigidbody = GetComponentInParent<Rigidbody>();
             Player1 = GetComponentInParent<Player1>();
             
@@ -81,7 +86,7 @@ namespace Player
         public void QuickAttack()
         {
             //Debug.Log("QuickAttack!!!");
-            if (PlayerController.m_IsGrounded && !PlayerController.ShieldSliding)
+            if (PlayerController.m_IsGrounded && !ShieldSlidingController.ShieldSliding)
             {
                 Vector3 ForceVector = new Vector3(0, 0, QuickAttackForce);
                 Player1.NormalForceController(ForceVector);
@@ -93,7 +98,7 @@ namespace Player
         public void StrongAttack()
         {
 
-            if (PlayerController.m_IsGrounded && !PlayerController.ShieldSliding)
+            if (PlayerController.m_IsGrounded && !ShieldSlidingController.ShieldSliding)
             {
                 PlayerController.Atacking = true;
                 Vector3 ForceVector = new Vector3(0, StrongAttackForceY , StrongAttackForceZ);
@@ -127,6 +132,20 @@ namespace Player
          //   Player1.TorqueController(TorqueVector);
 
         }
+
+        public void SuperCharging()
+        {
+            Vector3 ForceVector = new Vector3(0, 0, ImpulseForwardForce);
+            Player1.NormalImpulseForceController(ForceVector);
+        }
+
+        public void Slash()
+        {
+            PlayerController.Atacking = true;
+            SwordBox.enabled = true;
+        }
+
+
 
         public void StopAttacking()
         {

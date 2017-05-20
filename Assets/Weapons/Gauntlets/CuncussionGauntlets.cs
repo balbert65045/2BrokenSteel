@@ -56,7 +56,7 @@ namespace Player
                 if (!chargeinit)
                 {
                     ChargeTime = Time.timeSinceLevelLoad;
-                    Debug.Log("TimeCaptured");
+                   // Debug.Log("TimeCaptured");
                 }
                 chargeinit = true;
                 ChargeTimeForce = InitialChargetimeForceFactor * (Time.timeSinceLevelLoad - ChargeTime);

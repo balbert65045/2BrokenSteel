@@ -9,7 +9,7 @@ namespace Player
     {
 
 
-        public PlayerUserControl PlayerUserControl;
+        public PUC PlayerUserControl;
         public GameObject PauseMenu;
 
         private float OriginalTimeScale;
@@ -26,11 +26,13 @@ namespace Player
         {
             if (PlayerUserControl.Paused && !GamePaused)
             {
+                PlayerUserControl.Paused = false;
                 GamePaused = true;
                 SetPause(true);
             }
             else if (PlayerUserControl.Paused && GamePaused)
             {
+                PlayerUserControl.Paused = false;
                 GamePaused = false;
                 SetPause(false);
             }

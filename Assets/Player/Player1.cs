@@ -8,6 +8,7 @@ public class Player1 : MonoBehaviour {
 
     private Rigidbody PlayerRigidBody;
 
+
 	void Start () {
 
         if (GetComponent<Rigidbody>() == null)
@@ -18,8 +19,13 @@ public class Player1 : MonoBehaviour {
         PlayerRigidBody = GetComponent<Rigidbody>();
 
 	}
-	
-	// Update is called once per frame
+
+    private void Update()
+    {
+
+    }
+
+    // Update is called once per frame
 
     public void PlayerHit()
     {
@@ -47,5 +53,8 @@ public class Player1 : MonoBehaviour {
         PlayerRigidBody.constraints = RigidbodyConstraints.None;
         PlayerRigidBody.AddRelativeTorque(TourqueVector);
     }
+
+    
+
 
 }

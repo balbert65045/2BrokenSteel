@@ -13,16 +13,35 @@ public class WeaponController : MonoBehaviour {
     public float RapidFireManaCost = 10;
     public float AirManaRechargeRate = 1;
 
+    public float ChargePotentialFactor = .1f;
+
+
     public Slider HealthSlider;
-    public Slider AirManaSlider; 
-	// Use this for initialization
-	void Start () {
+    public Slider AirManaSlider;
+    public Slider PotentialSlider;
+    // Use this for initialization
+
+    public float ChargeTime = 2f;
+    private float TimeStored;
+    private bool Charging = false;
+
+    void Start () {
 		
 	}
 
     // Update is called once per frame
-    private void Update()
+    private void FixedUpdate()
     {
+        if (Charging)
+        {
+           
+            if (Time.timeSinceLevelLoad > TimeStored + ChargeTime)
+            {
+             
+                Charging = false;
+                StopCharging();
+            }
+        }
         AirManaSlider.value += Time.deltaTime * AirManaRechargeRate;
     }
 
@@ -80,6 +99,7 @@ public class WeaponController : MonoBehaviour {
         {
             BroadcastMessage("QuickAttack");
         }
+
         else if (type == 1)
         {
             BroadcastMessage("StrongAttack");
@@ -92,6 +112,23 @@ public class WeaponController : MonoBehaviour {
         {
             BroadcastMessage("SideStepLeft");
         }
+        //SuperChargeCharging
+        else if (type == 4)
+        {
+            Debug.Log("SuperCharging");
+            Charging = true;
+            TimeStored = Time.timeSinceLevelLoad;
+            BroadcastMessage("SuperCharging");
+        }
+        else if (type == 5)
+        {
+            BroadcastMessage("Slash");
+        }
+    }
+
+    private void StopCharging()
+    {
+        SendMessage("StopPotential");
     }
 
     public void Stop()
@@ -115,6 +152,16 @@ public class WeaponController : MonoBehaviour {
            // Debug.Log("SlowMo off!");
         }
     }
-  
+
+    public void ColorChange()
+    {
+        Debug.Log("ChangeColor");
+    }
+
+    public void ChargePotential(float speed)
+    {
+        PotentialSlider.value += speed * ChargePotentialFactor*Time.deltaTime;
+    }
+
 
 }

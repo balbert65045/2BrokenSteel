@@ -94,8 +94,10 @@ namespace Player
             if (!Paused)
             {
                 Paused = CrossPlatformInputManager.GetButtonDown("pausebutton");
-               // Debug.Log(Paused);
+                
+                //Debug.Log(Paused);
             }
+
 
             if (CrossPlatformInputManager.GetButtonDown("LockEnemy") && !Locked)
             {
@@ -170,8 +172,6 @@ namespace Player
             if (Input.GetKey(KeyCode.LeftShift)) m_Move *= 0.5f;
             m_Player.Move(m_Move, m_Jump, m_QuickMove, m_LeftMove, m_RightMove, m_SpecialMove, ActiveGauntlets, ActiveSword, WeaponSwitch, m_BackwardsMove, Locked, m_ForwardsMove, Slidinginput, m_SpecialMoveCharge, m_DodgeLeft, m_DodgeRight, h);
             m_Jump = false;
-
-            Paused = false;
 
             m_QuickMove = false;
             m_DodgeLeft = false;

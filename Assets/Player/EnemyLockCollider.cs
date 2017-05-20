@@ -40,7 +40,7 @@ namespace Player
             if (col.gameObject.GetComponent<Enemy>())
             {
                 LocalEnemies.Remove(col.gameObject);
-                Player.GetComponent<PlayerUserControl>().LostLock(col.gameObject);
+                Player.GetComponent<PUC>().LostLock(col.gameObject);
                 //  Debug.Log(LocalEnemies.Count);
                 // LocalEnemies.Remove(col.gameObject);
             }
