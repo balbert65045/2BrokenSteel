@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Player
 {
@@ -14,11 +15,15 @@ namespace Player
         private Animator m_Animator;
         private Rigidbody m_Rigidbody;
 
+        public Slider PotentialSlider;
+
         private bool ShieldSliding = false;
         public bool InvertSlide = false;
         private bool RecentlyLaunched = false;
         private bool initialLaunch = false;
         private bool M_Blocked = false;
+
+        private bool potentialToggled = false;
 
 
 
@@ -190,6 +195,7 @@ namespace Player
                 }
                 else if(TogglePotential)
                 {
+                    potentialToggled = !potentialToggled;
                     m_Animator.SetTrigger("PotentialToggle");
                 }
                 else if (QuickMove)
@@ -206,7 +212,17 @@ namespace Player
                 }
                 else if (SpecialMove && !ShieldSliding)
                 {
-                    m_Animator.SetBool("SuperCharge", true);
+                    if (potentialToggled)
+                    {
+                        if (PotentialSlider.value >= 50)
+                        {
+                            m_Animator.SetBool("SuperCharge", true);
+                        }
+                    }
+                   else if(!potentialToggled)
+                    {
+                        m_Animator.SetTrigger("StrongAttack");
+                    }
                    // m_Animator.SetTrigger("StrongAttack");
                 }
                 else if (m_DodgeLeft && PlayerController.m_IsGrounded)

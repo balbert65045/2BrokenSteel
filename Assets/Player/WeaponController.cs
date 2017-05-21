@@ -13,8 +13,11 @@ public class WeaponController : MonoBehaviour {
     public float RapidFireManaCost = 10;
     public float AirManaRechargeRate = 1;
 
-    public float ChargePotentialFactor = .1f;
+    public float ChargePotentialFactor = 1f;
+    public float PotentialDepletionRate = 1;
+    private bool DepletelBar = false;
 
+    public float TimeForChargedAttack = .5f;
 
     public Slider HealthSlider;
     public Slider AirManaSlider;
@@ -23,18 +26,39 @@ public class WeaponController : MonoBehaviour {
 
     public float ChargeTime = 2f;
     private float TimeStored;
-    private bool Charging = false;
+    public bool Charging = false;
+
+    private bool potentialOn = false;
 
     void Start () {
 		
 	}
 
+    private void Update()
+    {
+        if (DepletelBar && PotentialSlider.value != 0)
+        {
+            PotentialSlider.value -= PotentialDepletionRate * Time.deltaTime;
+        }
+        else if (PotentialSlider.value == 0 && potentialOn)
+        {
+            BroadcastMessage("ChangeColorSword");
+            DepletelBar = false;
+        }
+    }
+
     // Update is called once per frame
     private void FixedUpdate()
     {
+        
+       
+
         if (Charging)
         {
-           
+            if (CheckForEnemy()){
+                Charging = false;
+                StopCharging();
+            }
             if (Time.timeSinceLevelLoad > TimeStored + ChargeTime)
             {
              
@@ -42,6 +66,9 @@ public class WeaponController : MonoBehaviour {
                 StopCharging();
             }
         }
+        
+
+
         AirManaSlider.value += Time.deltaTime * AirManaRechargeRate;
     }
 
@@ -122,8 +149,27 @@ public class WeaponController : MonoBehaviour {
         }
         else if (type == 5)
         {
-            BroadcastMessage("Slash");
+            BroadcastMessage("SlashSword");
         }
+    }
+
+
+    private bool CheckForEnemy()
+    {
+        Debug.Log("CheckingForEnemy");
+        float AttackDistance = (GetComponent<Rigidbody>().velocity.magnitude) * TimeForChargedAttack;
+
+        Debug.DrawLine(transform.position - transform.forward *.1f, transform.position + (transform.forward * AttackDistance));
+
+        RaycastHit hitInfo;
+        if (Physics.Raycast(transform.position + transform.forward * .1f, transform.forward, out hitInfo, AttackDistance) )
+        {
+            if (hitInfo.transform.GetComponent<Enemy>())
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void StopCharging()
@@ -155,12 +201,33 @@ public class WeaponController : MonoBehaviour {
 
     public void ColorChange()
     {
-        Debug.Log("ChangeColor");
+        BroadcastMessage("ChangeColorSword");
+       // Debug.Log("ChangeColor");
     }
 
     public void ChargePotential(float speed)
     {
-        PotentialSlider.value += speed * ChargePotentialFactor*Time.deltaTime;
+        if (!potentialOn)
+        {
+            PotentialSlider.value += speed * ChargePotentialFactor * Time.deltaTime;
+        }
+    }
+
+    public void PotentialStatus(bool value)
+    {
+        if (value)
+        {
+            potentialOn = true;
+        }
+        else
+        {
+            potentialOn = false;
+        }
+    }
+
+    public void DepletePotentialBar()
+    {
+        DepletelBar = true;
     }
 
 

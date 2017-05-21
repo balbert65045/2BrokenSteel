@@ -12,6 +12,10 @@ namespace Player
         Rigidbody PlayerRigidbody; 
         Player1 Player1;
 
+        public Material ChargeMaterial;
+        private Color NormalMaterialColor;
+        private bool ChargeStatus = false;
+
         [Header("Quick Attack Settings")]
         public float QuickAttackForce = 100f;
    //     public float QuickAttackTourque = 100f;
@@ -61,7 +65,9 @@ namespace Player
             ShieldSlidingController = GetComponentInParent<ShieldSlidingController>();
             PlayerRigidbody = GetComponentInParent<Rigidbody>();
             Player1 = GetComponentInParent<Player1>();
-            
+
+            NormalMaterialColor = GetComponent<MeshRenderer>().materials[1].color;
+
             SwordBox = GetComponent<BoxCollider>();
             SwordBox.enabled = false;
         }
@@ -91,6 +97,11 @@ namespace Player
                 Vector3 ForceVector = new Vector3(0, 0, QuickAttackForce);
                 Player1.NormalForceController(ForceVector);
             }
+            if (ChargeStatus)
+            {
+                SendMessageUpwards("DepletePotentialBar");
+            }
+           
             SwordBox.enabled = true;
 
         }
@@ -133,14 +144,33 @@ namespace Player
 
         }
 
+        public void ChangeColorSword()
+        {
+            ChargeStatus = !ChargeStatus;
+            if (ChargeStatus)
+            {
+                SendMessageUpwards("PotentialStatus", true);
+                GetComponent<MeshRenderer>().materials[1].color = ChargeMaterial.color;
+            }
+            else
+            {
+                SendMessageUpwards("PotentialStatus", false);
+                GetComponent<MeshRenderer>().materials[1].color = NormalMaterialColor;
+            }
+        }
+
         public void SuperCharging()
         {
             Vector3 ForceVector = new Vector3(0, 0, ImpulseForwardForce);
             Player1.NormalImpulseForceController(ForceVector);
         }
 
-        public void Slash()
+        public void SlashSword()
         {
+            if (ChargeStatus)
+            {
+                SendMessageUpwards("DepletePotentialBar");
+            }
             PlayerController.Atacking = true;
             SwordBox.enabled = true;
         }
