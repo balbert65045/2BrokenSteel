@@ -208,10 +208,11 @@ namespace Player
                         col.gameObject.GetComponent<Enemy>().DisablePathing();
                     }
 
-                    Vector3 objLoc = col.gameObject.transform.position;
-                    Vector3 LaunchVector = new Vector3(objLoc.x - PlayerController.transform.position.x, 1, objLoc.z - PlayerController.transform.position.z).normalized;
+                    //Vector3 objLoc = col.gameObject.transform.position;
+                    //Vector3 LaunchVector = new Vector3(objLoc.x - PlayerController.transform.position.x, 1, objLoc.z - PlayerController.transform.position.z).normalized;
+                    Vector3 LaunchVector = new Vector3(PlayerController.transform.forward.x, 0, PlayerController.transform.forward.z);
 
-                    
+
                     float LaunchForce = InitialLaunchForce + PlayerRigidbody.velocity.magnitude;
 
                     col.GetComponent<LaunchObject>().ImpulseForceController(LaunchVector, LaunchForce);

@@ -101,10 +101,7 @@ namespace Player
             if (!TogglePotential)
             {
                 TogglePotential = CrossPlatformInputManager.GetButtonDown("TogglePotential");
-                if (TogglePotential)
-                {
-                    Debug.Log("PotentialOn");
-                }
+             
             }
 
             if (!GamePaused)          

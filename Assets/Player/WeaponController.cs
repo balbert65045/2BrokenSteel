@@ -42,6 +42,7 @@ public class WeaponController : MonoBehaviour {
         }
         else if (PotentialSlider.value == 0 && potentialOn)
         {
+            SendMessage("TogglePotentialSword");
             BroadcastMessage("ChangeColorSword");
             DepletelBar = false;
         }
@@ -159,13 +160,17 @@ public class WeaponController : MonoBehaviour {
         Debug.Log("CheckingForEnemy");
         float AttackDistance = (GetComponent<Rigidbody>().velocity.magnitude) * TimeForChargedAttack;
 
-        Debug.DrawLine(transform.position - transform.forward *.1f, transform.position + (transform.forward * AttackDistance));
+
+        Vector3 ForwardsDirection = new Vector3(transform.forward.x, 0, transform.forward.z); 
+
+        Debug.DrawLine(transform.position + transform.forward *.1f, transform.position + (ForwardsDirection * AttackDistance));
 
         RaycastHit hitInfo;
-        if (Physics.Raycast(transform.position + transform.forward * .1f, transform.forward, out hitInfo, AttackDistance) )
+        if (Physics.Raycast(transform.position + transform.forward * .1f, ForwardsDirection, out hitInfo, AttackDistance) )
         {
             if (hitInfo.transform.GetComponent<Enemy>())
             {
+                Debug.Log("EnemyFound");
                 return true;
             }
         }

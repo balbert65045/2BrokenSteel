@@ -279,6 +279,12 @@ namespace Player
 
         }
 
+
+        public void TogglePotentialSword()
+        {
+            potentialToggled = !potentialToggled;
+        }
+
         public void StopPotential()
         {
             m_Animator.SetBool("SuperCharge", false);
