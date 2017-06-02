@@ -8,7 +8,7 @@ public class LaunchArm : MonoBehaviour {
     public GameObject Smoke;
     private ParticleSystem SmokeParticle;
     private ParticleSystem BlastParticles;
-
+    private bool Toggled = false;
     private Color OriginalColor; 
 
     private bool colorCharge = false;
@@ -33,6 +33,21 @@ public class LaunchArm : MonoBehaviour {
             GetComponent<MeshRenderer>().material.color = OriginalColor;
         }
 	}
+
+
+    public void GauntletsToggleColor()
+    {
+        Toggled = !Toggled;
+        if (Toggled)
+        {
+
+            OriginalColor = Color.blue;
+        }
+        else
+        {
+            OriginalColor = Color.white;
+        }
+    }
 
     public void BlastLaunchUp()
     {

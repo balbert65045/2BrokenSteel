@@ -89,7 +89,12 @@ namespace Player
                     BroadcastMessage("GauntletsIdle");
                 }
 
-                if (!ShieldSliding && !PlayerController.Sliding)
+                else if (TogglePotential)
+                {
+                    m_Animator.SetTrigger("ManaDrainToggle");
+                }
+
+                    if (!ShieldSliding && !PlayerController.Sliding)
                 {
                     if (m_SpecialMoveCharge)
                     {

@@ -17,7 +17,7 @@ namespace Player
         [SerializeField]
         float m_GravityMultiplier = 2f;
         [SerializeField]
-        float m_MoveSpeedMultiplier = 1f;
+        public float m_MoveSpeedMultiplier = 1f;
         [SerializeField]
         float m_MaxSpeed = 20f; 
 
@@ -167,7 +167,7 @@ namespace Player
         void HandleGroundedMovement(bool jump, Vector3 move)
         {
 
-            if (jump)
+            if (jump && !Sliding)
             {
              //   Debug.Log("Jumped");
                 m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, m_JumpPower, m_Rigidbody.velocity.z);

@@ -28,7 +28,9 @@ namespace Player
         public float ShieldSlideLaunchForce = 500;
 
         // Use this for initialization
+        public float MaxCharge = 3000;
         public float ChargeTimeForce = 100;
+        
 
         public bool chargeinit = false;
         private float ChargeTime = 0;
@@ -59,10 +61,18 @@ namespace Player
                    // Debug.Log("TimeCaptured");
                 }
                 chargeinit = true;
-                ChargeTimeForce = InitialChargetimeForceFactor * (Time.timeSinceLevelLoad - ChargeTime);
+                ChargeTimeForce = Mathf.Clamp((InitialChargetimeForceFactor * (Time.timeSinceLevelLoad - ChargeTime)), 0, MaxCharge);
+                bool Maxed = (ChargeTimeForce == MaxCharge);
+                SendMessageUpwards("ChargingGauntlets", Maxed);
                 BroadcastMessage("ChangeColor");
             }
         }
+
+        public void ChangeColorGauntlets()
+        {
+            BroadcastMessage("GauntletsToggleColor");
+        }
+
 
         public void GauntletsIdle()
         {
