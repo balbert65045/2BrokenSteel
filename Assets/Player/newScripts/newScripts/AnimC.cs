@@ -15,6 +15,7 @@ namespace Player
         private Animator m_Animator;
         private Rigidbody m_Rigidbody;
 
+        public GameObject ExplodingPlayer;
         public Slider PotentialSlider;
 
         private bool ShieldSliding = false;
@@ -306,6 +307,15 @@ namespace Player
         public void Blocked()
         {
             M_Blocked = true;
+        }
+
+
+        public void Death()
+        {
+            GetComponent<MeshRenderer>().enabled = false;
+            BroadcastMessage("Dead");
+            Instantiate(ExplodingPlayer, transform.position, transform.rotation);
+            GetComponent<PUC>().enabled = false;
         }
 
     }

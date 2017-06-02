@@ -37,6 +37,8 @@ namespace Player
         private float InitialChargetimeForceFactor;
         public bool LaunchedUp = false;
 
+        private bool dead = false;
+
         void Start()
         {
 
@@ -64,13 +66,21 @@ namespace Player
                 ChargeTimeForce = Mathf.Clamp((InitialChargetimeForceFactor * (Time.timeSinceLevelLoad - ChargeTime)), 0, MaxCharge);
                 bool Maxed = (ChargeTimeForce == MaxCharge);
                 SendMessageUpwards("ChargingGauntlets", Maxed);
-                BroadcastMessage("ChangeColor");
+                
+                if (!dead)
+                {
+                    BroadcastMessage("ChangeColor");
+                }
+
             }
         }
 
         public void ChangeColorGauntlets()
         {
-            BroadcastMessage("GauntletsToggleColor");
+            if (!dead)
+            {
+                BroadcastMessage("GauntletsToggleColor");
+            }
         }
 
 
@@ -80,7 +90,10 @@ namespace Player
             {
                 chargeinit = false;
                 ChargeTimeForce = 0;
-                BroadcastMessage("ChangeColorBack");
+                if (!dead)
+                {
+                    BroadcastMessage("ChangeColorBack");
+                }
             }
         }
 
@@ -164,6 +177,12 @@ namespace Player
         {
             LaunchedUp = false;
             GauntletsIdle();
+        }
+
+        public void Dead()
+        {
+            dead = true;
+          //  BroadcastMessage("Dead");
         }
     }
 }

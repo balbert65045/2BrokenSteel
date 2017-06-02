@@ -9,7 +9,8 @@ public class PlayerShield : MonoBehaviour {
     private Animator M_Animator;
 
     public bool isUnderneath = false;
-    private float InitialRotation; 
+    private float InitialRotation;
+    public GameObject DeathShield;
 
     // Use this for initialization
     void Start () {
@@ -73,6 +74,12 @@ public class PlayerShield : MonoBehaviour {
         isUnderneath = false;
          SendMessageUpwards("ShrinkCollider");
         // ShieldCollider.enabled = false;
+    }
+
+    public void Dead()
+    {
+        gameObject.SetActive(false);
+        Instantiate(DeathShield, transform.position, transform.rotation);
     }
 
 

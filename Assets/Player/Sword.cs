@@ -16,6 +16,8 @@ namespace Player
         private Color NormalMaterialColor;
         private bool ChargeStatus = false;
 
+        public GameObject DeathSword;
+
         [Header("Quick Attack Settings")]
         public float QuickAttackForce = 100f;
    //     public float QuickAttackTourque = 100f;
@@ -229,6 +231,13 @@ namespace Player
                 col.gameObject.GetComponent<Enemy>().RecentlyHit();
             }
         }
+
+        public void Dead()
+        {
+            gameObject.SetActive(false);
+            Instantiate(DeathSword, transform.position, transform.rotation);
+        }
+
     }
 }
 

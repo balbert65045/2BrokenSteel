@@ -43,6 +43,8 @@ namespace Player
         public float ManaDepletionRate = 2f;
         public float IncreaseFactor = 3f;
 
+        private bool dead; 
+
         void Start()
         {
             PlayerController = GetComponent<PC>();
@@ -301,7 +303,10 @@ namespace Player
 
         public void ColorChange()
         {
-            BroadcastMessage("ChangeColorSword");
+            if (!dead)
+            {
+                BroadcastMessage("ChangeColorSword");
+            }
             // Debug.Log("ChangeColor");
         }
 
@@ -328,6 +333,11 @@ namespace Player
         public void DepletePotentialBar()
         {
             DepletelBar = true;
+        }
+
+        public void Death()
+        {
+            dead = true;
         }
 
 

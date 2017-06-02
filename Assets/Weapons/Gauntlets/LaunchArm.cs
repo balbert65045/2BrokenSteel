@@ -9,7 +9,9 @@ public class LaunchArm : MonoBehaviour {
     private ParticleSystem SmokeParticle;
     private ParticleSystem BlastParticles;
     private bool Toggled = false;
-    private Color OriginalColor; 
+    private Color OriginalColor;
+
+    public GameObject DeadLaunchArm;
 
     private bool colorCharge = false;
 
@@ -126,5 +128,11 @@ public class LaunchArm : MonoBehaviour {
     public void ChangeColorBack()
     {
         colorCharge = false;
+    }
+
+    public void Dead()
+    {
+        gameObject.SetActive(false);
+        Instantiate(DeadLaunchArm, transform.position, transform.rotation);
     }
 }
