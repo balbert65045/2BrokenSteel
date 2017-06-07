@@ -208,6 +208,9 @@ namespace Player
                     if (col.gameObject.GetComponent<Enemy>())
                     {
                         col.gameObject.GetComponent<Enemy>().DisablePathing();
+
+                        // Part of it damage needs to be scalled//
+                        col.gameObject.GetComponent<EnemyHealth>().Hit(100);
                     }
 
                     //Vector3 objLoc = col.gameObject.transform.position;
